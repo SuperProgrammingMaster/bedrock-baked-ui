@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="docs/assets/logo.png" width="128" height="128" alt="bedrock-baked-ui logo" />
+<img src="https://raw.githubusercontent.com/SuperProgrammingMaster/bedrock-baked-ui/main/docs/assets/logo.png" width="128" height="128" alt="bedrock-baked-ui logo" />
 
 # bedrock-baked-ui
 
@@ -24,19 +24,19 @@ Built with standard HTML, CSS, and **[Lucide Icons](https://lucide.dev)** (`exam
 
 <table>
   <tr>
-    <td><img src="examples/guild-codex/packs/rp/textures/ui/guild_codex/s_00_en_home.png" alt="Field Study Hero" /></td>
-    <td><img src="examples/guild-codex/packs/rp/textures/ui/guild_codex/s_01_en_shop.png" alt="Runic Armory" /></td>
+    <td><img src="https://raw.githubusercontent.com/SuperProgrammingMaster/bedrock-baked-ui/main/examples/guild-codex/packs/rp/textures/ui/guild_codex/s_00_en_home.png" alt="Field Study Hero" /></td>
+    <td><img src="https://raw.githubusercontent.com/SuperProgrammingMaster/bedrock-baked-ui/main/examples/guild-codex/packs/rp/textures/ui/guild_codex/s_01_en_shop.png" alt="Runic Armory" /></td>
   </tr>
   <tr>
-    <td><img src="examples/guild-codex/packs/rp/textures/ui/guild_codex/s_02_en_quests.png" alt="Field Contracts" /></td>
-    <td><img src="examples/guild-codex/packs/rp/textures/ui/guild_codex/s_03_en_profile.png" alt="Build Notes & Settings" /></td>
+    <td><img src="https://raw.githubusercontent.com/SuperProgrammingMaster/bedrock-baked-ui/main/examples/guild-codex/packs/rp/textures/ui/guild_codex/s_02_en_quests.png" alt="Field Contracts" /></td>
+    <td><img src="https://raw.githubusercontent.com/SuperProgrammingMaster/bedrock-baked-ui/main/examples/guild-codex/packs/rp/textures/ui/guild_codex/s_03_en_profile.png" alt="Build Notes & Settings" /></td>
   </tr>
 </table>
 
 <div align="center">
   <sub>Animated Lucide SVG <code>flip_book</code> spritesheets baked automatically in pure Node.js:</sub><br/><br/>
-  <img src="examples/guild-codex/packs/rp/textures/ui/guild_codex/anim_tactical_reticle.png" alt="Tactical Reticle Flipbook" width="85%" /><br/>
-  <img src="examples/guild-codex/packs/rp/textures/ui/guild_codex/anim_forge_flame.png" alt="Forge Flame Flipbook" width="85%" />
+  <img src="https://raw.githubusercontent.com/SuperProgrammingMaster/bedrock-baked-ui/main/examples/guild-codex/packs/rp/textures/ui/guild_codex/anim_tactical_reticle.png" alt="Tactical Reticle Flipbook" width="85%" /><br/>
+  <img src="https://raw.githubusercontent.com/SuperProgrammingMaster/bedrock-baked-ui/main/examples/guild-codex/packs/rp/textures/ui/guild_codex/anim_forge_flame.png" alt="Forge Flame Flipbook" width="85%" />
 </div>
 
 ```bash
