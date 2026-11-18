@@ -1,6 +1,6 @@
 // Aetherium Guild Codex: complete Behavior Pack example powered by bedrock-baked-ui/runtime.
 
-import { world, type Player } from '@minecraft/server';
+import { EntityComponentTypes, ItemStack, world, type Player } from '@minecraft/server';
 import { BakedMenuManager, fitText } from 'bedrock-baked-ui/runtime';
 import manifest from './generated/baked_site.json';
 
@@ -223,6 +223,31 @@ export const codexMenu = new BakedMenuManager(manifest, {
 });
 
 codexMenu.install();
+
+world.afterEvents.playerSpawn.subscribe((ev) => {
+  if (!ev.initialSpawn) return;
+  const p = ev.player;
+  try {
+    const inv = (p.getComponent(EntityComponentTypes.Inventory) as {
+      container?: { size: number; getItem(i: number): ItemStack | undefined; addItem(it: ItemStack): unknown };
+    } | undefined)?.container;
+    if (inv) {
+      let hasCompass = false;
+      for (let i = 0; i < inv.size; i++) {
+        if (inv.getItem(i)?.typeId === 'minecraft:compass') {
+          hasCompass = true;
+          break;
+        }
+      }
+      if (!hasCompass) {
+        const compass = new ItemStack('minecraft:compass', 1);
+        compass.nameTag = '§aAetherium Codex';
+        inv.addItem(compass);
+      }
+    }
+    p.sendMessage('§a[Aetherium] §fHold the Compass and Right-Click to open the Codex, or type §e!codex §f/ §e!codex ko');
+  } catch {}
+});
 
 world.beforeEvents.chatSend.subscribe((ev) => {
   const msg = ev.message.trim().toLowerCase();
