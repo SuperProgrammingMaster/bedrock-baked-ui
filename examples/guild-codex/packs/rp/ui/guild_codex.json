@@ -6,9 +6,9 @@
       0,
       0
     ],
-    "frame_count": 10,
-    "frame_step": 272,
-    "fps": 5,
+    "frame_count": 12,
+    "frame_step": 228,
+    "fps": 6,
     "reversible": false,
     "easing": "linear"
   },
@@ -18,8 +18,8 @@
       0,
       0
     ],
-    "frame_count": 8,
-    "frame_step": 320,
+    "frame_count": 10,
+    "frame_step": 276,
     "fps": 6,
     "reversible": false,
     "easing": "linear"
@@ -203,15 +203,15 @@
                             "anchor_from": "top_left",
                             "anchor_to": "top_left",
                             "offset": [
-                              "4.735%",
+                              "5.777%",
                               "57.239%"
                             ],
                             "size": [
-                              "12.879%",
+                              "10.795%",
                               "19.192%"
                             ],
                             "uv_size": [
-                              272,
+                              228,
                               228
                             ],
                             "uv": "@guild_codex.fb_portal_core",
@@ -267,15 +267,15 @@
                             "anchor_from": "top_left",
                             "anchor_to": "top_left",
                             "offset": [
-                              "4.735%",
+                              "5.777%",
                               "57.239%"
                             ],
                             "size": [
-                              "12.879%",
+                              "10.795%",
                               "19.192%"
                             ],
                             "uv_size": [
-                              272,
+                              228,
                               228
                             ],
                             "uv": "@guild_codex.fb_portal_core",
@@ -331,15 +331,15 @@
                             "anchor_from": "top_left",
                             "anchor_to": "top_left",
                             "offset": [
-                              "4.735%",
+                              "5.777%",
                               "57.239%"
                             ],
                             "size": [
-                              "12.879%",
+                              "10.795%",
                               "19.192%"
                             ],
                             "uv_size": [
-                              272,
+                              228,
                               228
                             ],
                             "uv": "@guild_codex.fb_portal_core",
@@ -359,11 +359,11 @@
                               "19.697%"
                             ],
                             "size": [
-                              "15.152%",
+                              "13.068%",
                               "12.795%"
                             ],
                             "uv_size": [
-                              320,
+                              276,
                               152
                             ],
                             "uv": "@guild_codex.fb_forge_flame",
@@ -419,15 +419,15 @@
                             "anchor_from": "top_left",
                             "anchor_to": "top_left",
                             "offset": [
-                              "4.735%",
+                              "5.777%",
                               "57.239%"
                             ],
                             "size": [
-                              "12.879%",
+                              "10.795%",
                               "19.192%"
                             ],
                             "uv_size": [
-                              272,
+                              228,
                               228
                             ],
                             "uv": "@guild_codex.fb_portal_core",
@@ -483,15 +483,15 @@
                             "anchor_from": "top_left",
                             "anchor_to": "top_left",
                             "offset": [
-                              "4.735%",
+                              "5.777%",
                               "57.239%"
                             ],
                             "size": [
-                              "12.879%",
+                              "10.795%",
                               "19.192%"
                             ],
                             "uv_size": [
-                              272,
+                              228,
                               228
                             ],
                             "uv": "@guild_codex.fb_portal_core",
@@ -547,15 +547,15 @@
                             "anchor_from": "top_left",
                             "anchor_to": "top_left",
                             "offset": [
-                              "4.735%",
+                              "5.777%",
                               "57.239%"
                             ],
                             "size": [
-                              "12.879%",
+                              "10.795%",
                               "19.192%"
                             ],
                             "uv_size": [
-                              272,
+                              228,
                               228
                             ],
                             "uv": "@guild_codex.fb_portal_core",
@@ -575,11 +575,11 @@
                               "19.697%"
                             ],
                             "size": [
-                              "15.152%",
+                              "13.068%",
                               "12.795%"
                             ],
                             "uv_size": [
-                              320,
+                              276,
                               152
                             ],
                             "uv": "@guild_codex.fb_forge_flame",
@@ -635,15 +635,15 @@
                             "anchor_from": "top_left",
                             "anchor_to": "top_left",
                             "offset": [
-                              "4.735%",
+                              "5.777%",
                               "57.239%"
                             ],
                             "size": [
-                              "12.879%",
+                              "10.795%",
                               "19.192%"
                             ],
                             "uv_size": [
-                              272,
+                              228,
                               228
                             ],
                             "uv": "@guild_codex.fb_portal_core",
@@ -699,15 +699,15 @@
                             "anchor_from": "top_left",
                             "anchor_to": "top_left",
                             "offset": [
-                              "4.735%",
+                              "5.777%",
                               "57.239%"
                             ],
                             "size": [
-                              "12.879%",
+                              "10.795%",
                               "19.192%"
                             ],
                             "uv_size": [
-                              272,
+                              228,
                               228
                             ],
                             "uv": "@guild_codex.fb_portal_core",
@@ -992,11 +992,11 @@
                           "ih_01@guild_codex.inv_hitbox_btn": {
                             "$htag": "§h§1§2",
                             "$hoff": [
-                              "76.42%",
+                              "76.042%",
                               "21.38%"
                             ],
                             "$hsize": [
-                              "18.561%",
+                              "18.939%",
                               "9.091%"
                             ]
                           }
@@ -2155,11 +2155,11 @@
               "hb_12@guild_codex.hitbox_btn": {
                 "$htag": "§h§1§2",
                 "$hoff": [
-                  "76.42%",
+                  "76.042%",
                   "21.38%"
                 ],
                 "$hsize": [
-                  "18.561%",
+                  "18.939%",
                   "9.091%"
                 ]
               }
@@ -2452,15 +2452,15 @@
                 "anchor_from": "top_left",
                 "anchor_to": "top_left",
                 "offset": [
-                  "4.735%",
+                  "5.777%",
                   "57.239%"
                 ],
                 "size": [
-                  "12.879%",
+                  "10.795%",
                   "19.192%"
                 ],
                 "uv_size": [
-                  272,
+                  228,
                   228
                 ],
                 "uv": "@guild_codex.fb_portal_core",
@@ -2514,15 +2514,15 @@
                 "anchor_from": "top_left",
                 "anchor_to": "top_left",
                 "offset": [
-                  "4.735%",
+                  "5.777%",
                   "57.239%"
                 ],
                 "size": [
-                  "12.879%",
+                  "10.795%",
                   "19.192%"
                 ],
                 "uv_size": [
-                  272,
+                  228,
                   228
                 ],
                 "uv": "@guild_codex.fb_portal_core",
@@ -2576,15 +2576,15 @@
                 "anchor_from": "top_left",
                 "anchor_to": "top_left",
                 "offset": [
-                  "4.735%",
+                  "5.777%",
                   "57.239%"
                 ],
                 "size": [
-                  "12.879%",
+                  "10.795%",
                   "19.192%"
                 ],
                 "uv_size": [
-                  272,
+                  228,
                   228
                 ],
                 "uv": "@guild_codex.fb_portal_core",
@@ -2604,11 +2604,11 @@
                   "19.697%"
                 ],
                 "size": [
-                  "15.152%",
+                  "13.068%",
                   "12.795%"
                 ],
                 "uv_size": [
-                  320,
+                  276,
                   152
                 ],
                 "uv": "@guild_codex.fb_forge_flame",
@@ -2662,15 +2662,15 @@
                 "anchor_from": "top_left",
                 "anchor_to": "top_left",
                 "offset": [
-                  "4.735%",
+                  "5.777%",
                   "57.239%"
                 ],
                 "size": [
-                  "12.879%",
+                  "10.795%",
                   "19.192%"
                 ],
                 "uv_size": [
-                  272,
+                  228,
                   228
                 ],
                 "uv": "@guild_codex.fb_portal_core",
@@ -2724,15 +2724,15 @@
                 "anchor_from": "top_left",
                 "anchor_to": "top_left",
                 "offset": [
-                  "4.735%",
+                  "5.777%",
                   "57.239%"
                 ],
                 "size": [
-                  "12.879%",
+                  "10.795%",
                   "19.192%"
                 ],
                 "uv_size": [
-                  272,
+                  228,
                   228
                 ],
                 "uv": "@guild_codex.fb_portal_core",
@@ -2786,15 +2786,15 @@
                 "anchor_from": "top_left",
                 "anchor_to": "top_left",
                 "offset": [
-                  "4.735%",
+                  "5.777%",
                   "57.239%"
                 ],
                 "size": [
-                  "12.879%",
+                  "10.795%",
                   "19.192%"
                 ],
                 "uv_size": [
-                  272,
+                  228,
                   228
                 ],
                 "uv": "@guild_codex.fb_portal_core",
@@ -2814,11 +2814,11 @@
                   "19.697%"
                 ],
                 "size": [
-                  "15.152%",
+                  "13.068%",
                   "12.795%"
                 ],
                 "uv_size": [
-                  320,
+                  276,
                   152
                 ],
                 "uv": "@guild_codex.fb_forge_flame",
@@ -2872,15 +2872,15 @@
                 "anchor_from": "top_left",
                 "anchor_to": "top_left",
                 "offset": [
-                  "4.735%",
+                  "5.777%",
                   "57.239%"
                 ],
                 "size": [
-                  "12.879%",
+                  "10.795%",
                   "19.192%"
                 ],
                 "uv_size": [
-                  272,
+                  228,
                   228
                 ],
                 "uv": "@guild_codex.fb_portal_core",
@@ -2934,15 +2934,15 @@
                 "anchor_from": "top_left",
                 "anchor_to": "top_left",
                 "offset": [
-                  "4.735%",
+                  "5.777%",
                   "57.239%"
                 ],
                 "size": [
-                  "12.879%",
+                  "10.795%",
                   "19.192%"
                 ],
                 "uv_size": [
-                  272,
+                  228,
                   228
                 ],
                 "uv": "@guild_codex.fb_portal_core",
