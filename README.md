@@ -26,8 +26,8 @@ Writing complex Minecraft Bedrock UIs directly in **JsonUI** (`ui/chest_screen.j
 
 See [examples/guild-codex](examples/guild-codex) for a complete, high-craft bilingual (`EN` / `KO`) Guild Codex example powered by **[Lucide Icons](https://lucide.dev)** (`<i data-lucide="..."></i>`), featuring 8 additive states, 4 shared `[data-dyn]` live telemetry slots, 2 seamless 2x HiDPI `flip_book` animations built directly from Lucide SVGs + CSS transforms, and a ready-to-wire Behavior Pack script.
 
-![Aetherium Guild Codex Home](examples/guild-codex/packs/rp/textures/ui/guild_codex/s_00_en_home.png)
-![Aetherium Guild Codex Relic Armory](examples/guild-codex/packs/rp/textures/ui/guild_codex/s_02_en_shop.png)
+![Aetherium Field Codex Home](examples/guild-codex/packs/rp/textures/ui/guild_codex/s_00_en_home.png)
+![Aetherium Relic Armory](examples/guild-codex/packs/rp/textures/ui/guild_codex/s_01_en_shop.png)
 
 ```bash
 node dist/cli.js dev --config examples/guild-codex

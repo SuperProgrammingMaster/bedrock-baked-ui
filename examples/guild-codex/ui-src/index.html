@@ -2,232 +2,205 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<title>Aetherium Guild Codex</title>
+<title>Aetherium // Bedrock Field Codex</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
   html, body {
     width: 1056px; height: 594px; overflow: hidden;
-    font-family: "Segoe UI", "Malgun Gothic", system-ui, sans-serif;
-    background: #0d111a;
+    font-family: "Segoe UI", "Malgun Gothic", -apple-system, BlinkMacSystemFont, sans-serif;
+    background: #0b0e0a;
+    color: #edf2e8;
+    -webkit-font-smoothing: antialiased;
   }
   #app {
     position: relative; width: 1056px; height: 594px; overflow: hidden;
     background:
-      radial-gradient(circle at 20% 18%, rgba(56, 189, 248, 0.10), transparent 42%),
-      radial-gradient(circle at 82% 22%, rgba(245, 194, 78, 0.10), transparent 46%),
-      repeating-linear-gradient(0deg, #0f1420 0px, #0f1420 20px, #0c101a 20px, #0c101a 22px);
-    color: #f1efe9;
+      radial-gradient(ellipse 65% 55% at 74% 38%, rgba(168, 230, 77, 0.055), transparent 70%),
+      #0b0e0a;
   }
   .a { position: absolute; overflow: hidden; }
+  .mono { font-family: "Cascadia Code", "Consolas", "SFMono-Regular", ui-monospace, monospace; }
   svg.lucide { display: block; flex-shrink: 0; }
 
-  /* Layered Obsidian & Burnished Brass Bevel Panels */
-  .obsidian-frame {
-    background: linear-gradient(180deg, #171e2e 0%, #101521 100%);
-    border: 3px solid;
-    border-color: #4f412c #07090f #07090f #4f412c;
-    box-shadow: inset 0 0 0 1px rgba(246, 207, 102, 0.14);
+  /* Top Editorial Navbar (1px matte hairline) */
+  .topbar {
+    background: rgba(11, 14, 10, 0.96);
+    border-bottom: 1px solid #1d251b;
   }
-  .brass-frame {
-    background: linear-gradient(180deg, #1b2234 0%, #121724 100%);
-    border: 3px solid;
-    border-color: #c89b3c #3d2a0d #3d2a0d #c89b3c;
-    box-shadow: inset 0 0 0 1px rgba(255, 232, 163, 0.16);
+  .brand-mark {
+    width: 28px; height: 28px; border-radius: 6px;
+    background: #b4f055; color: #0b0e0a;
+    display: flex; align-items: center; justify-content: center;
   }
-  .sub-panel {
-    background: linear-gradient(180deg, #1f273b 0%, #141a29 100%);
-    border: 2px solid;
-    border-color: #4b5878 #0a0d16 #0a0d16 #4b5878;
+  .nav-link {
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+    font-size: 11px; font-weight: 700; letter-spacing: 1.2px;
+    color: #778471;
+    border-radius: 6px;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .nav-link.on {
+    color: #edf2e8;
+    background: #161d14;
+    border: 1px solid #283424;
+  }
+  .nav-dot {
+    width: 5px; height: 5px; border-radius: 50%;
+    background: #b4f055;
+    box-shadow: 0 0 8px rgba(180, 240, 85, 0.9);
   }
 
-  /* Glowing Lucide Icon Medallions & Badges */
-  .ico-badge {
-    display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0;
+  /* Modern Studio Buttons */
+  .lime-btn {
+    background: #b4f055;
+    color: #0b0e0a;
+    border: 1px solid #cef78a;
+    border-radius: 7px;
+    font-weight: 800;
+    letter-spacing: 0.7px;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    cursor: pointer;
+    box-shadow: 0 8px 24px rgba(180, 240, 85, 0.14);
+  }
+  .ghost-btn {
+    background: #111610;
+    color: #cdd8c6;
+    border: 1px solid #253022;
+    border-radius: 7px;
+    font-weight: 700;
+    letter-spacing: 0.6px;
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+    cursor: pointer;
+  }
+  .ghost-btn.on {
+    background: #b4f055;
+    color: #0b0e0a;
+    border-color: #cef78a;
+    font-weight: 800;
+  }
+  .close-btn {
+    background: #131812;
+    color: #8f9d89;
+    border: 1px solid #242e21;
+    border-radius: 7px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+  }
+
+  /* Editorial Hero Typography */
+  .eyebrow {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 10.5px; font-weight: 700; letter-spacing: 1.5px;
+    color: #93a87b;
+    text-transform: uppercase;
+  }
+  .hero-h1 {
+    font-size: 46px; font-weight: 900; line-height: 0.96; letter-spacing: -1.6px;
+    color: #edf2e8;
+  }
+  .hero-h1.ko { font-size: 40px; line-height: 1.08; letter-spacing: -1.2px; }
+  .hero-h1 .lime { color: #b4f055; }
+  .hero-lead {
+    font-size: 13px; line-height: 1.58; color: #94a18e; font-weight: 400;
+  }
+
+  /* Viewport Showcase Card (matches reference right-side frame) */
+  .viewport-card {
+    background: #0e130d;
+    border: 1px solid #222c1f;
+    border-radius: 14px;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.55);
+  }
+  .glass-chip {
+    background: rgba(11, 15, 10, 0.78);
+    border: 1px solid rgba(180, 240, 85, 0.22);
+    border-radius: 8px;
+    padding: 6px 10px;
+  }
+  .glass-pill {
+    background: rgba(11, 15, 10, 0.80);
+    border: 1px solid #273223;
+    border-radius: 999px;
+    padding: 5px 11px;
+    display: inline-flex; align-items: center; gap: 7px;
+    font-size: 10px; font-weight: 700; letter-spacing: 1.2px; color: #d7e2d1;
+  }
+  .selector-strip {
+    background: #10150f;
+    border: 1px solid #20291d;
     border-radius: 10px;
-    border: 1.5px solid rgba(255, 255, 255, 0.14);
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16);
-  }
-  .ico-badge.round { border-radius: 50%; }
-  .ico-badge.gold {
-    background: radial-gradient(circle at 30% 25%, rgba(251, 191, 36, 0.28), rgba(43, 30, 11, 0.92));
-    border-color: rgba(246, 207, 102, 0.72);
-    color: #fde68a;
-  }
-  .ico-badge.violet {
-    background: radial-gradient(circle at 30% 25%, rgba(167, 139, 250, 0.30), rgba(33, 18, 56, 0.92));
-    border-color: rgba(192, 132, 252, 0.72);
-    color: #ddd6fe;
-  }
-  .ico-badge.emerald {
-    background: radial-gradient(circle at 30% 25%, rgba(52, 211, 153, 0.28), rgba(12, 40, 31, 0.92));
-    border-color: rgba(52, 211, 153, 0.72);
-    color: #a7f3d0;
-  }
-  .ico-badge.sky {
-    background: radial-gradient(circle at 30% 25%, rgba(56, 189, 248, 0.30), rgba(12, 34, 52, 0.92));
-    border-color: rgba(56, 189, 248, 0.75);
-    color: #bae6fd;
-  }
-  .ico-badge.crimson {
-    background: radial-gradient(circle at 30% 25%, rgba(251, 113, 133, 0.30), rgba(50, 15, 24, 0.92));
-    border-color: rgba(251, 113, 133, 0.75);
-    color: #fecdd3;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 12px;
   }
 
-  /* Navigation & Action Buttons */
-  .nav-btn {
-    background: linear-gradient(180deg, #1d2538 0%, #141a28 100%);
-    border: 3px solid;
-    border-color: #43506e #090c14 #090c14 #43506e;
-    color: #c9d2e3;
+  /* Minimalist Cards for Armory / Bounties / Build Notes */
+  .web-card {
+    background: #10150f;
+    border: 1px solid #222c1f;
+    border-radius: 10px;
+    padding: 12px 14px;
     cursor: pointer;
-    display: flex; align-items: center; padding: 0 12px; gap: 10px;
-    font-size: 13px; font-weight: 800; letter-spacing: 0.3px; white-space: nowrap;
-  }
-  .nav-btn.on {
-    background: linear-gradient(180deg, #433219 0%, #2a1e0e 100%);
-    border-color: #f6cf66 #6e4a12 #6e4a12 #f6cf66;
-    color: #fff4d1;
-    box-shadow: inset 0 0 14px rgba(246, 207, 102, 0.18);
-  }
-  .nav-btn.on svg.lucide { color: #fde68a; filter: drop-shadow(0 0 4px rgba(253, 230, 138, 0.55)); }
-
-  .btn {
-    border: 3px solid;
-    cursor: pointer;
-    display: flex; align-items: center; justify-content: center; gap: 9px;
-    font-weight: 900; letter-spacing: 0.4px;
-    text-shadow: 0 2px 0 rgba(0, 0, 0, 0.55);
-  }
-  .btn.emerald {
-    background: linear-gradient(180deg, #1e7a50 0%, #124f33 100%);
-    border-color: #6ee7b7 #0a2e1d #0a2e1d #6ee7b7;
-    color: #ecfdf5;
-  }
-  .btn.gold {
-    background: linear-gradient(180deg, #b58222 0%, #78510d 100%);
-    border-color: #fde68a #3d2705 #3d2705 #fde68a;
-    color: #fffbeb;
-  }
-  .btn.crimson {
-    background: linear-gradient(180deg, #a62b30 0%, #6b1519 100%);
-    border-color: #fca5a5 #38090b #38090b #fca5a5;
-    color: #fff1f2;
-  }
-  .btn.slate {
-    background: linear-gradient(180deg, #2b3650 0%, #1b2336 100%);
-    border-color: #7c8fb8 #0c101a #0c101a #7c8fb8;
-    color: #e2e8f0;
-  }
-  .btn.arcane {
-    background: linear-gradient(180deg, #563291 0%, #341c5e 100%);
-    border-color: #c4b5fd #1b0e33 #1b0e33 #c4b5fd;
-    color: #f5f3ff;
-  }
-
-  /* Interactive Cards */
-  .class-card {
-    background: linear-gradient(180deg, #1e2639 0%, #131826 100%);
-    border: 3px solid;
-    border-color: #526184 #0a0d16 #0a0d16 #526184;
-    cursor: pointer;
-    padding: 12px 10px;
-    display: flex; flex-direction: column; align-items: center; justify-content: space-between;
-    text-align: center;
-  }
-  .class-card.knight { border-top-color: #f6cf66; }
-  .class-card.arcanist { border-top-color: #a78bfa; }
-  .class-card.ranger { border-top-color: #34d399; }
-  .class-card.cleric { border-top-color: #38bdf8; }
-
-  .relic-card {
-    background: linear-gradient(180deg, #1c2436 0%, #121724 100%);
-    border: 3px solid;
-    border-color: #4b5978 #090c14 #090c14 #4b5978;
-    cursor: pointer;
-    padding: 10px 12px;
     display: flex; flex-direction: column; justify-content: space-between;
   }
-  .relic-card.legendary { border-color: #f6cf66 #543a0c #543a0c #f6cf66; }
-  .relic-card.epic { border-color: #c084fc #3b1c5c #3b1c5c #c084fc; }
-  .relic-card.rare { border-color: #38bdf8 #103a52 #103a52 #38bdf8; }
-  .relic-card.uncommon { border-color: #34d399 #0d3d2b #0d3d2b #34d399; }
-
-  .quest-card {
-    background: linear-gradient(90deg, #1d2538 0%, #151b2b 72%, #1d1924 100%);
-    border: 3px solid;
-    border-color: #5b4c32 #0b0e17 #0b0e17 #5b4c32;
-    cursor: pointer;
-    padding: 10px 14px;
-    display: flex; align-items: center; justify-content: space-between; gap: 14px;
+  .web-card.featured {
+    border-color: rgba(180, 240, 85, 0.45);
+    background: linear-gradient(180deg, #141c12 0%, #10150f 100%);
   }
-
-  .setting-card {
-    background: linear-gradient(180deg, #1f283d 0%, #141a29 100%);
-    border: 3px solid;
-    border-color: #58688c #0a0d16 #0a0d16 #58688c;
-    cursor: pointer;
-    padding: 12px 16px;
-    display: flex; align-items: center; gap: 14px;
+  .icon-chip {
+    width: 34px; height: 34px; border-radius: 8px;
+    background: #161e14;
+    border: 1px solid #283524;
+    color: #b4f055;
+    display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0;
   }
+  .icon-chip.sky { color: #7dd3fc; border-color: #1f3947; background: #101c24; }
+  .icon-chip.amber { color: #fcd34d; border-color: #423415; background: #1c170c; }
+  .icon-chip.violet { color: #c4b5fd; border-color: #35254d; background: #181224; }
+  .icon-chip.rose { color: #fda4af; border-color: #472029; background: #211015; }
 
-  .pill {
+  .tag-pill {
     display: inline-flex; align-items: center; gap: 4px;
-    padding: 2px 8px;
-    font-size: 11px; font-weight: 900; letter-spacing: 0.4px;
-    border: 1px solid rgba(255, 255, 255, 0.16);
+    padding: 2px 7px; border-radius: 4px;
+    font-size: 10px; font-weight: 700; letter-spacing: 0.7px;
+    background: #172015; color: #b4f055; border: 1px solid #293824;
   }
-  .pill.gold { background: #3b2a10; color: #fde68a; border-color: #c89b3c; }
-  .pill.cyan { background: #0e2e3f; color: #7dd3fc; border-color: #38bdf8; }
-  .pill.violet { background: #2c1647; color: #ddd6fe; border-color: #a78bfa; }
-  .pill.emerald { background: #0d3324; color: #6ee7b7; border-color: #34d399; }
-  .pill.crimson { background: #3f1116; color: #fda4af; border-color: #f43f5e; }
+  .tag-pill.muted { background: #151a14; color: #95a38f; border-color: #252e22; }
+  .tag-pill.rose { background: #261318; color: #fda4af; border-color: #4a212b; }
+  .tag-pill.sky { background: #11212b; color: #7dd3fc; border-color: #1f3c4f; }
 
-  /* Opaque solid containers strictly required for every [data-dyn] slot */
-  .wallet-box {
-    background-color: #111622;
-    border: 3px solid;
-    border-color: #070a10 #5c4928 #5c4928 #070a10;
+  /* Sleek Opaque Bottom Telemetry Bar (required alpha=1 for [data-dyn]) */
+  .footer-bar {
+    background-color: #0e120d;
+    border-top: 1px solid #1f281d;
+  }
+  .wallet-pill {
+    background-color: #121710;
+    border: 1px solid #232d20;
+    border-radius: 7px;
   }
   .dynval {
-    background-color: #111622;
-    color: #fde68a;
-    font-size: 15px;
-    font-weight: 900;
+    background-color: #121710;
+    color: #edf2e8;
+    font-size: 13px; font-weight: 800;
     display: flex; align-items: center;
     white-space: nowrap;
   }
-  .dock-box {
-    background-color: #0f1420;
-    border: 3px solid;
-    border-color: #594626 #06080d #06080d #594626;
-  }
   .dynrow {
-    background-color: #0f1420;
-    color: #f1f5f9;
-    font-size: 14px;
-    font-weight: 800;
-    display: flex; align-items: center; padding-left: 6px;
+    background-color: #0e120d;
+    color: #dce5d7;
+    font-size: 12.5px; font-weight: 700;
+    display: flex; align-items: center;
     white-space: nowrap;
   }
 
   /* Lucide-Powered Flipbook Animation Stages */
-  .anim-stage {
-    position: relative;
-    overflow: hidden;
-    background: #0c101b;
-  }
-  .anim-layer {
-    position: absolute;
-    left: 50%; top: 50%;
-    transform-origin: center center;
-    pointer-events: none;
-  }
+  .anim-stage { position: relative; overflow: hidden; }
+  .anim-layer { position: absolute; left: 50%; top: 50%; transform-origin: center center; pointer-events: none; }
 </style>
 </head>
 <body>
 <div id="app"></div>
-<!-- Local bundled Lucide Icons (v1.75.0, ISC License) for 100% offline headless baking -->
 <script src="./vendor/lucide.min.js"></script>
 <script>
 (function () {
@@ -242,81 +215,239 @@
       (color ? 'color:' + color + ';' : '') + '" data-stroke="' + (stroke || 2) + '"></i>';
   }
 
-  function badge(name, tone, boxSize, iconSize, round) {
-    return '<div class="ico-badge ' + tone + (round ? ' round' : '') + '" style="width:' + boxSize + 'px;height:' + boxSize + 'px;">' +
-      ico(name, iconSize, '', 2.1) +
-    '</div>';
+  /* Procedural atmospheric Minecraft sunlit stone-ruin courtyard canvas (matches reference mood!) */
+  function drawVoxelScene(canvasId, variant) {
+    var cv = document.getElementById(canvasId);
+    if (!cv) return;
+    var w = parseInt(cv.getAttribute('data-w'), 10) || 580;
+    var h = parseInt(cv.getAttribute('data-h'), 10) || 334;
+    var dpr = window.devicePixelRatio || 1;
+    if (cv.width !== Math.round(w * dpr) || cv.height !== Math.round(h * dpr)) {
+      cv.width = Math.round(w * dpr);
+      cv.height = Math.round(h * dpr);
+    }
+    var ctx = cv.getContext('2d');
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+    // 1. Sky / Ambient Background
+    var sky = ctx.createLinearGradient(0, 0, w, h);
+    if (variant === 'courtyard') {
+      sky.addColorStop(0, '#090c08');
+      sky.addColorStop(0.45, '#151c12');
+      sky.addColorStop(0.75, '#465134');
+      sky.addColorStop(1, '#1a2015');
+    } else {
+      sky.addColorStop(0, '#090b0d');
+      sky.addColorStop(0.55, '#14191e');
+      sky.addColorStop(1, '#0d110c');
+    }
+    ctx.fillStyle = sky;
+    ctx.fillRect(0, 0, w, h);
+
+    if (variant === 'courtyard') {
+      // Sunlit golden opening on the right half (ruined fortress courtyard)
+      var sun = ctx.createRadialGradient(w * 0.72, h * 0.22, 10, w * 0.68, h * 0.45, w * 0.56);
+      sun.addColorStop(0, 'rgba(244, 240, 194, 0.92)');
+      sun.addColorStop(0.32, 'rgba(182, 198, 118, 0.52)');
+      sun.addColorStop(0.68, 'rgba(66, 84, 46, 0.22)');
+      sun.addColorStop(1, 'rgba(9, 12, 8, 0)');
+      ctx.fillStyle = sun;
+      ctx.fillRect(0, 0, w, h);
+
+      // Distant voxel castle ruins silhouettes
+      var blocks = [
+        { x: 350, y: 74, w: 68, h: 112, c: '#5c6047' },
+        { x: 350, y: 58, w: 18, h: 16, c: '#6e7355' },
+        { x: 382, y: 58, w: 18, h: 16, c: '#6e7355' },
+        { x: 432, y: 98, w: 58, h: 96, c: '#4c513c' },
+        { x: 294, y: 120, w: 54, h: 80, c: '#3f4533' }
+      ];
+      for (var b = 0; b < blocks.length; b++) {
+        var bl = blocks[b];
+        ctx.fillStyle = bl.c;
+        ctx.fillRect(bl.x, bl.y, bl.w, bl.h);
+        // Subtle pixel brick lines
+        ctx.fillStyle = 'rgba(0,0,0,0.18)';
+        for (var gy = bl.y + 12; gy < bl.y + bl.h; gy += 12) ctx.fillRect(bl.x, gy, bl.w, 1);
+        for (var gx = bl.x + 14; gx < bl.x + bl.w; gx += 14) ctx.fillRect(gx, bl.y, 1, bl.h);
+      }
+
+      // Sunlit cobblestone floor perspective stripes
+      var flr = ctx.createLinearGradient(0, h * 0.58, 0, h);
+      flr.addColorStop(0, '#5f6346');
+      flr.addColorStop(0.45, '#3b402d');
+      flr.addColorStop(1, '#12160f');
+      ctx.fillStyle = flr;
+      ctx.beginPath();
+      ctx.moveTo(220, h * 0.60);
+      ctx.lineTo(w, h * 0.56);
+      ctx.lineTo(w, h);
+      ctx.lineTo(150, h);
+      ctx.closePath();
+      ctx.fill();
+
+      // Floor block grid lines
+      ctx.strokeStyle = 'rgba(12, 16, 10, 0.45)';
+      ctx.lineWidth = 1.5;
+      for (var fy = 0; fy < 7; fy++) {
+        var yLine = h * 0.62 + fy * fy * 4.2;
+        ctx.beginPath(); ctx.moveTo(160, yLine); ctx.lineTo(w, yLine); ctx.stroke();
+      }
+
+      // Wooden crates on courtyard floor
+      var crates = [
+        { x: 296, y: 192, s: 28 },
+        { x: 320, y: 204, s: 24 },
+        { x: 274, y: 208, s: 22 }
+      ];
+      for (var cr = 0; cr < crates.length; cr++) {
+        var k = crates[cr];
+        ctx.fillStyle = '#5c4124';
+        ctx.fillRect(k.x, k.y, k.s, k.s);
+        ctx.fillStyle = '#785732';
+        ctx.fillRect(k.x + 2, k.y + 2, k.s - 4, 4);
+        ctx.strokeStyle = '#2a1c0d';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(k.x + 1, k.y + 1, k.s - 2, k.s - 2);
+      }
+
+      // Lush Minecraft foliage canopy + hanging vines along top-right
+      var leaves = [
+        [305, -8, 44, 44, '#2d471d'], [344, -12, 54, 48, '#3b5c24'], [392, -6, 62, 52, '#4a6e2d'],
+        [448, 0, 58, 48, '#385422'], [492, 14, 68, 56, '#2b421b'], [326, 26, 26, 36, '#3b5c24'],
+        [424, 34, 24, 52, '#486b2b'], [466, 44, 20, 62, '#344f20'], [288, 12, 22, 54, '#2a401b']
+      ];
+      for (var lv = 0; lv < leaves.length; lv++) {
+        var L = leaves[lv];
+        ctx.fillStyle = L[4];
+        ctx.fillRect(L[0], L[1], L[2], L[3]);
+        ctx.fillStyle = 'rgba(180, 240, 85, 0.14)';
+        ctx.fillRect(L[0] + 4, L[1] + 4, L[2] - 12, 6);
+      }
+
+      // Diagonal warm god-rays streaming from top-right through courtyard
+      ctx.save();
+      var ray = ctx.createLinearGradient(440, 0, 240, 290);
+      ray.addColorStop(0, 'rgba(232, 244, 178, 0.28)');
+      ray.addColorStop(1, 'rgba(232, 244, 178, 0)');
+      ctx.fillStyle = ray;
+      ctx.beginPath();
+      ctx.moveTo(390, 0); ctx.lineTo(478, 0); ctx.lineTo(310, 310); ctx.lineTo(220, 310);
+      ctx.closePath(); ctx.fill();
+      ctx.restore();
+
+      // Deep foreground stone wall on the left (peeking corner frame!)
+      var wallW = 248;
+      var wallGrad = ctx.createLinearGradient(0, 0, wallW, 0);
+      wallGrad.addColorStop(0, '#070907');
+      wallGrad.addColorStop(0.76, '#141912');
+      wallGrad.addColorStop(1, '#262e21');
+      ctx.fillStyle = wallGrad;
+      ctx.fillRect(0, 0, wallW, h);
+
+      // Stone brick mortar grid on left foreground wall
+      for (var wy = 0; wy < h; wy += 28) {
+        var shift = ((wy / 28) % 2) * 22;
+        for (var wx = -22; wx < wallW; wx += 44) {
+          var shade = (((wx * 7 + wy * 13) & 31) / 31) * 0.09;
+          ctx.fillStyle = 'rgba(160, 185, 130,' + shade.toFixed(3) + ')';
+          ctx.fillRect(wx + shift + 2, wy + 2, 40, 24);
+        }
+      }
+      // Subtle moss patches near wall edge
+      ctx.fillStyle = 'rgba(98, 138, 52, 0.25)';
+      ctx.fillRect(216, 40, 28, 18);
+      ctx.fillRect(224, 146, 22, 30);
+      // Rim-lit corner bevel edge
+      ctx.fillStyle = 'rgba(218, 236, 168, 0.24)';
+      ctx.fillRect(wallW - 3, 0, 3, h);
+
+      // Foreground right-edge silhouetted voxel pillar + knight shoulder silhouette
+      ctx.fillStyle = '#181c14';
+      ctx.fillRect(w - 58, 0, 58, h);
+      ctx.fillStyle = '#2c3324';
+      ctx.fillRect(w - 60, 0, 3, h);
+      // Stylized blocky voxel shoulder peeking on right edge
+      ctx.fillStyle = '#241a10';
+      ctx.fillRect(w - 92, 168, 54, 48);
+      ctx.fillStyle = '#4a361e';
+      ctx.fillRect(w - 92, 168, 14, 48);
+      ctx.fillStyle = '#334d22';
+      ctx.fillRect(w - 102, 218, 36, 74);
+      ctx.fillStyle = '#6d8a3f';
+      ctx.fillRect(w - 102, 218, 10, 40);
+    }
+
+    // Smooth dark bottom scrim so overlaid white typography is razor-sharp
+    var scrim = ctx.createLinearGradient(0, h * 0.45, 0, h);
+    scrim.addColorStop(0, 'rgba(11, 14, 10, 0)');
+    scrim.addColorStop(0.68, 'rgba(11, 14, 10, 0.72)');
+    scrim.addColorStop(1, 'rgba(11, 14, 10, 0.96)');
+    ctx.fillStyle = scrim;
+    ctx.fillRect(0, 0, w, h);
   }
 
-  /* Animation 1: Lucide-driven Arcane Orbit & Compass Core (114x114 @ 2x * 12f = 2736px <= 2800px) */
-  function portalAnimHtml() {
+  /* Animation 1: Lucide Tactical Reticle & Orbit Core (112x112 @ 2x * 12f = 2688px <= 2800px) */
+  function reticleAnimHtml() {
     return (
-      '<div id="portal_stage" class="a anim-stage" data-anim="portal_core" data-frames="12" data-fps="6" style="left:0px;top:0px;width:114px;height:114px;">' +
-        '<div id="p_glow" class="anim-layer" style="width:94px;height:94px;margin:-47px 0 0 -47px;border-radius:50%;background:radial-gradient(circle, rgba(56,189,248,0.45) 0%, rgba(124,58,237,0.28) 46%, rgba(12,16,27,0) 74%);"></div>' +
-        '<svg id="p_ring" class="anim-layer" width="98" height="98" viewBox="0 0 98 98" style="margin:-49px 0 0 -49px;">' +
-          '<circle cx="49" cy="49" r="44" fill="none" stroke="#c89b3c" stroke-width="2.2" stroke-dasharray="18 16.56" stroke-linecap="round"/>' +
+      '<div id="reticle_stage" class="a anim-stage" data-anim="tactical_reticle" data-frames="12" data-fps="6" style="left:212px;top:96px;width:112px;height:112px;background:transparent;">' +
+        '<div id="r_halo" class="anim-layer" style="width:94px;height:94px;margin:-47px 0 0 -47px;border-radius:50%;background:radial-gradient(circle, rgba(180,240,85,0.28) 0%, rgba(180,240,85,0.06) 52%, rgba(11,14,10,0) 74%);"></div>' +
+        '<svg id="r_ring" class="anim-layer" width="94" height="94" viewBox="0 0 94 94" style="margin:-47px 0 0 -47px;">' +
+          '<circle cx="47" cy="47" r="41" fill="none" stroke="#b4f055" stroke-width="1.6" stroke-dasharray="14 18.2" stroke-linecap="round" opacity="0.72"/>' +
         '</svg>' +
-        '<div id="p_orbit" class="anim-layer" style="width:64px;height:64px;margin:-32px 0 0 -32px;display:flex;align-items:center;justify-content:center;color:#7dd3fc;filter:drop-shadow(0 0 8px rgba(56,189,248,0.85));">' +
-          ico('orbit', 62, '#7dd3fc', 1.7) +
+        '<div id="r_cross" class="anim-layer" style="width:48px;height:48px;margin:-24px 0 0 -24px;display:flex;align-items:center;justify-content:center;color:#b4f055;filter:drop-shadow(0 0 7px rgba(180,240,85,0.85));">' +
+          ico('crosshair', 42, '#b4f055', 1.75) +
         '</div>' +
-        '<div id="p_core" class="anim-layer" style="width:30px;height:30px;margin:-15px 0 0 -15px;display:flex;align-items:center;justify-content:center;color:#fde68a;filter:drop-shadow(0 0 7px rgba(253,230,138,0.9));">' +
-          ico('gem', 24, '#fef08a', 2.2) +
-        '</div>' +
-        '<div id="p_sp0" class="anim-layer" style="width:14px;height:14px;margin:-7px 0 0 -7px;color:#fde68a;">' + ico('sparkle', 13, '#fde68a', 2.2) + '</div>' +
-        '<div id="p_sp1" class="anim-layer" style="width:14px;height:14px;margin:-7px 0 0 -7px;color:#bae6fd;">' + ico('sparkle', 11, '#bae6fd', 2.2) + '</div>' +
-        '<div id="p_sp2" class="anim-layer" style="width:14px;height:14px;margin:-7px 0 0 -7px;color:#ddd6fe;">' + ico('sparkle', 12, '#ddd6fe', 2.2) + '</div>' +
+        '<div id="r_sp0" class="anim-layer" style="width:12px;height:12px;margin:-6px 0 0 -6px;color:#d9f99d;">' + ico('sparkle', 11, '#d9f99d', 2.1) + '</div>' +
+        '<div id="r_sp1" class="anim-layer" style="width:12px;height:12px;margin:-6px 0 0 -6px;color:#b4f055;">' + ico('sparkle', 10, '#b4f055', 2.1) + '</div>' +
       '</div>'
     );
   }
 
-  /* Animation 2: Lucide-driven Runic Forge (Flame + Anvil + Hammer + Sparkles, 138x76 @ 2x * 10f = 2760px <= 2800px) */
+  /* Animation 2: Lucide Forge Core on Armory Tab (136x76 @ 2x * 10f = 2720px <= 2800px) */
   function forgeAnimHtml() {
     return (
-      '<div id="forge_stage" class="a anim-stage" data-anim="forge_flame" data-frames="10" data-fps="6" style="left:0px;top:0px;width:138px;height:76px;background:#111623;">' +
-        '<div id="f_glow" class="anim-layer" style="width:116px;height:76px;margin:-38px 0 0 -58px;background:radial-gradient(circle at 50% 68%, rgba(249,115,22,0.48) 0%, rgba(234,179,8,0.18) 42%, rgba(17,22,35,0) 75%);"></div>' +
-        '<div id="f_flame_bg" class="anim-layer" style="width:44px;height:44px;margin:-29px 0 0 -22px;color:#f97316;filter:drop-shadow(0 0 8px rgba(249,115,22,0.85));">' +
-          ico('flame', 44, '#f97316', 1.8) +
+      '<div id="forge_stage" class="a anim-stage" data-anim="forge_flame" data-frames="10" data-fps="6" style="left:0px;top:0px;width:136px;height:76px;background:#0f140e;">' +
+        '<div id="f_glow" class="anim-layer" style="width:110px;height:74px;margin:-37px 0 0 -55px;background:radial-gradient(circle at 50% 66%, rgba(180,240,85,0.34) 0%, rgba(250,204,21,0.12) 45%, rgba(15,20,14,0) 75%);"></div>' +
+        '<div id="f_flame_bg" class="anim-layer" style="width:40px;height:40px;margin:-27px 0 0 -20px;color:#b4f055;filter:drop-shadow(0 0 8px rgba(180,240,85,0.75));">' +
+          ico('flame', 40, '#b4f055', 1.8) +
         '</div>' +
-        '<div id="f_flame_fg" class="anim-layer" style="width:28px;height:28px;margin:-18px 0 0 -14px;color:#fef08a;">' +
-          ico('flame', 28, '#fef08a', 2.0) +
+        '<div id="f_flame_fg" class="anim-layer" style="width:24px;height:24px;margin:-16px 0 0 -12px;color:#ecfccb;">' +
+          ico('flame', 24, '#ecfccb', 2.0) +
         '</div>' +
-        '<div class="anim-layer" style="width:36px;height:36px;margin:-2px 0 0 -18px;color:#cbd5e1;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.8));">' +
-          ico('anvil', 34, '#cbd5e1', 2.0) +
+        '<div class="anim-layer" style="width:34px;height:34px;margin:-2px 0 0 -17px;color:#dce5d7;">' +
+          ico('anvil', 32, '#dce5d7', 1.9) +
         '</div>' +
-        '<div id="f_hammer" class="anim-layer" style="width:28px;height:28px;margin:-26px 0 0 12px;color:#fde68a;filter:drop-shadow(0 0 5px rgba(253,230,138,0.65));">' +
-          ico('hammer', 26, '#fde68a', 2.1) +
+        '<div id="f_hammer" class="anim-layer" style="width:26px;height:26px;margin:-25px 0 0 12px;color:#b4f055;">' +
+          ico('hammer', 24, '#b4f055', 2.0) +
         '</div>' +
-        '<div id="f_sp0" class="anim-layer" style="width:12px;height:12px;margin:-6px 0 0 -6px;color:#fef08a;">' + ico('sparkle', 11, '#fef08a', 2.2) + '</div>' +
-        '<div id="f_sp1" class="anim-layer" style="width:12px;height:12px;margin:-6px 0 0 -6px;color:#fb923c;">' + ico('sparkle', 10, '#fb923c', 2.2) + '</div>' +
-        '<div id="f_sp2" class="anim-layer" style="width:12px;height:12px;margin:-6px 0 0 -6px;color:#fde68a;">' + ico('sparkle', 12, '#fde68a', 2.2) + '</div>' +
+        '<div id="f_sp0" class="anim-layer" style="width:12px;height:12px;margin:-6px 0 0 -6px;color:#ecfccb;">' + ico('sparkle', 10, '#ecfccb', 2.1) + '</div>' +
+        '<div id="f_sp1" class="anim-layer" style="width:12px;height:12px;margin:-6px 0 0 -6px;color:#b4f055;">' + ico('sparkle', 11, '#b4f055', 2.1) + '</div>' +
       '</div>'
     );
   }
 
-  /* Pure periodic phase [0, 1) animation update for both Lucide SVG stages */
   function updateLucideAnims(phase) {
     var tau = Math.PI * 2;
     var s = Math.sin(phase * tau);
     var c = Math.cos(phase * tau);
 
-    var pGlow = document.getElementById('p_glow');
-    if (pGlow) {
-      pGlow.style.transform = 'scale(' + (0.94 + s * 0.10).toFixed(3) + ')';
-      pGlow.style.opacity = (0.78 + s * 0.20).toFixed(3);
-      var pRing = document.getElementById('p_ring');
-      if (pRing) pRing.style.transform = 'rotate(' + (phase * 45).toFixed(2) + 'deg)';
-      var pOrbit = document.getElementById('p_orbit');
-      if (pOrbit) pOrbit.style.transform = 'rotate(' + (phase * 180).toFixed(2) + 'deg) scale(' + (0.96 + c * 0.05).toFixed(3) + ')';
-      var pCore = document.getElementById('p_core');
-      if (pCore) pCore.style.transform = 'translateY(' + (s * -3.5).toFixed(2) + 'px) scale(' + (1 + c * 0.08).toFixed(3) + ')';
+    var rHalo = document.getElementById('r_halo');
+    if (rHalo) {
+      rHalo.style.transform = 'scale(' + (0.90 + s * 0.14).toFixed(3) + ')';
+      rHalo.style.opacity = (0.72 + s * 0.24).toFixed(3);
+      var rRing = document.getElementById('r_ring');
+      if (rRing) rRing.style.transform = 'rotate(' + (phase * 45).toFixed(2) + 'deg)';
+      var rCross = document.getElementById('r_cross');
+      if (rCross) rCross.style.transform = 'scale(' + (0.95 + c * 0.08).toFixed(3) + ') rotate(' + (s * 8).toFixed(2) + 'deg)';
 
-      for (var i = 0; i < 3; i++) {
-        var sp = document.getElementById('p_sp' + i);
+      for (var i = 0; i < 2; i++) {
+        var sp = document.getElementById('r_sp' + i);
         if (!sp) continue;
-        var ang = (phase + i / 3) * tau;
-        var rx = Math.cos(ang) * 38;
-        var ry = Math.sin(ang) * 26;
-        var tw = 0.65 + 0.35 * Math.sin((phase * 2 + i * 0.33) * tau);
+        var ang = (phase + i * 0.5) * tau;
+        var rx = Math.cos(ang) * 35;
+        var ry = Math.sin(ang) * 24;
+        var tw = 0.55 + 0.45 * Math.sin((phase * 2 + i * 0.5) * tau);
         sp.style.transform = 'translate(' + rx.toFixed(1) + 'px,' + ry.toFixed(1) + 'px) scale(' + tw.toFixed(2) + ')';
         sp.style.opacity = tw.toFixed(2);
       }
@@ -324,24 +455,23 @@
 
     var fGlow = document.getElementById('f_glow');
     if (fGlow) {
-      fGlow.style.opacity = (0.76 + s * 0.22).toFixed(3);
+      fGlow.style.opacity = (0.75 + s * 0.22).toFixed(3);
       var fBg = document.getElementById('f_flame_bg');
-      if (fBg) fBg.style.transform = 'scaleX(' + (1 + c * 0.09).toFixed(3) + ') scaleY(' + (1 + s * 0.14).toFixed(3) + ')';
+      if (fBg) fBg.style.transform = 'scaleX(' + (1 + c * 0.10).toFixed(3) + ') scaleY(' + (1 + s * 0.14).toFixed(3) + ')';
       var fFg = document.getElementById('f_flame_fg');
-      if (fFg) fFg.style.transform = 'translateY(' + (-s * 2.5).toFixed(2) + 'px) scale(' + (0.95 - c * 0.12).toFixed(3) + ')';
+      if (fFg) fFg.style.transform = 'translateY(' + (-s * 2.5).toFixed(2) + 'px) scale(' + (0.94 - c * 0.12).toFixed(3) + ')';
       var fHam = document.getElementById('f_hammer');
       if (fHam) {
-        // Rhythmic smithing swing
         var swing = Math.sin(phase * tau) * 18;
-        fHam.style.transform = 'rotate(' + (-26 + swing).toFixed(2) + 'deg) translateY(' + (Math.max(0, swing) * 0.25).toFixed(2) + 'px)';
+        fHam.style.transform = 'rotate(' + (-24 + swing).toFixed(2) + 'deg)';
       }
-      var xOffs = [-34, -4, 28];
-      for (var k = 0; k < 3; k++) {
+      var xOffs = [-30, 26];
+      for (var k = 0; k < 2; k++) {
         var fsp = document.getElementById('f_sp' + k);
         if (!fsp) continue;
-        var p = (phase + k * 0.333) % 1;
-        var fx = xOffs[k] + Math.sin(p * tau) * 6;
-        var fy = 18 - p * 46;
+        var p = (phase + k * 0.5) % 1;
+        var fx = xOffs[k] + Math.sin(p * tau) * 5;
+        var fy = 16 - p * 44;
         var alpha = Math.sin(p * Math.PI);
         fsp.style.transform = 'translate(' + fx.toFixed(1) + 'px,' + fy.toFixed(1) + 'px) scale(' + (0.6 + alpha * 0.5).toFixed(2) + ')';
         fsp.style.opacity = alpha.toFixed(2);
@@ -359,122 +489,129 @@
     }
   }
 
-  function renderChrome() {
+  function renderTopAndFooter() {
     var nav = [
-      { id: 'nav_home', tab: 'home', icon: 'shield-half', en: 'GUILD HALL', ko: '길드 본부' },
-      { id: 'nav_shop', tab: 'shop', icon: 'swords', en: 'RELIC ARMORY', ko: '유물 무기고' },
-      { id: 'nav_quests', tab: 'quests', icon: 'scroll-text', en: 'BOUNTY BOARD', ko: '현상금 의뢰' },
-      { id: 'nav_profile', tab: 'profile', icon: 'sliders-horizontal', en: 'CODEX & SFX', ko: '도감 · 설정' }
+      { id: 'nav_home', tab: 'home', en: 'FIELD STUDY', ko: '전장 브리핑' },
+      { id: 'nav_shop', tab: 'shop', en: 'ARMORY', ko: '유물 무기고' },
+      { id: 'nav_quests', tab: 'quests', en: 'CONTRACTS', ko: '현상금 의뢰' },
+      { id: 'nav_profile', tab: 'profile', en: 'BUILD NOTES', ko: '설정 · 기록' }
     ];
-
     var navHtml = '';
     for (var i = 0; i < nav.length; i++) {
       var n = nav[i];
       navHtml +=
-        '<div class="a nav-btn ' + (state.tab === n.tab ? 'on' : '') + '" data-hit="' + n.id + '" data-label="' + T(n.en, n.ko) + '" style="left:12px;top:' + (14 + i * 56) + 'px;width:174px;height:48px;">' +
-          ico(n.icon, 19, state.tab === n.tab ? '#fde68a' : '#94a3b8', 2.1) +
+        '<div class="a nav-link mono ' + (state.tab === n.tab ? 'on' : '') + '" data-hit="' + n.id + '" data-label="' + T(n.en, n.ko) + '" style="left:' + (286 + i * 124) + 'px;top:12px;width:116px;height:30px;">' +
+          (state.tab === n.tab ? '<span class="nav-dot"></span>' : '') +
           '<span>' + T(n.en, n.ko) + '</span>' +
         '</div>';
     }
 
     return (
-      /* Top Header Bar */
-      '<div class="a brass-frame" style="left:16px;top:14px;width:1024px;height:68px;">' +
-        '<div class="a" style="left:14px;top:9px;width:44px;height:44px;">' + badge('crown', 'gold', 44, 24, false) + '</div>' +
-        '<div class="a" style="left:70px;top:10px;width:430px;height:28px;font-size:21px;font-weight:900;color:#fef3c7;letter-spacing:0.8px;">' +
-          T('AETHERIUM GUILD CODEX', '에테리움 길드 코덱스') +
-        '</div>' +
-        '<div class="a" style="left:70px;top:37px;width:430px;height:18px;font-size:12px;font-weight:700;color:#94a3b8;">' +
-          T('SEASON IV · LUCIDE + BAKED UI SHOWCASE', '시즌 IV · LUCIDE + BAKED UI 쇼케이스') +
-        '</div>' +
-        /* Currency Slot 1: Gold (opaque #111622) */
-        '<div class="a wallet-box" style="left:526px;top:11px;width:158px;height:40px;">' +
-          '<div class="a" style="left:8px;top:7px;width:20px;height:20px;color:#fbbf24;">' + ico('coins', 20, '#fbbf24', 2.2) + '</div>' +
-          '<div class="a dynval" data-dyn="gold" data-dyn-scale="0.95" data-dyn-align="left" style="left:34px;top:0px;width:116px;height:34px;">2,450 G</div>' +
-        '</div>' +
-        /* Currency Slot 2: Gems (opaque #111622) */
-        '<div class="a wallet-box" style="left:694px;top:11px;width:144px;height:40px;">' +
-          '<div class="a" style="left:8px;top:7px;width:20px;height:20px;color:#38bdf8;">' + ico('gem', 20, '#38bdf8', 2.2) + '</div>' +
-          '<div class="a dynval" data-dyn="gems" data-dyn-scale="0.95" data-dyn-align="left" style="left:34px;top:0px;width:102px;height:34px;color:#7dd3fc;">18 Gems</div>' +
-        '</div>' +
-        /* Language Toggle */
-        '<div class="a btn slate" data-hit="set_lang" data-label="' + T('한국어', 'English') + '" style="left:848px;top:11px;width:92px;height:40px;font-size:13px;gap:6px;">' +
-          ico('languages', 16, '#cbd5e1', 2.1) + '<span>' + T('한국어', 'EN') + '</span>' +
-        '</div>' +
-        /* Close Menu */
-        '<div class="a btn crimson" data-hit="close_menu" data-special="close" data-label="' + T('Close', '닫기') + '" style="left:950px;top:11px;width:56px;height:40px;">' +
-          ico('x', 22, '#fff1f2', 2.6) +
-        '</div>' +
-      '</div>' +
-
-      /* Left Navigation Rail + Animated Lucide Portal Core */
-      '<div class="a obsidian-frame" style="left:16px;top:92px;width:204px;height:382px;">' +
+      /* Minimalist Editorial Web Topbar */
+      '<div class="a topbar" style="left:0px;top:0px;width:1056px;height:54px;">' +
+        '<div class="a brand-mark" style="left:28px;top:13px;">' + ico('crosshair', 17, '#0b0e0a', 2.4) + '</div>' +
+        '<div class="a mono" style="left:66px;top:11px;width:190px;height:16px;font-size:13px;font-weight:900;letter-spacing:1.4px;color:#edf2e8;">AETHERIUM</div>' +
+        '<div class="a mono" style="left:66px;top:28px;width:200px;height:14px;font-size:9px;letter-spacing:1.1px;color:#667360;">BEDROCK BAKED UI · 04</div>' +
         navHtml +
-        '<div class="a" style="left:39px;top:242px;width:120px;height:120px;border:3px solid #6e4e18;background:#0c101b;">' +
-          portalAnimHtml() +
+        '<div class="a ghost-btn mono" data-hit="set_lang" data-label="' + T('한국어', 'English') + '" style="left:806px;top:11px;width:72px;height:32px;font-size:11px;">' +
+          ico('languages', 13, '#9fb096', 2) + '<span>' + T('KR', 'EN') + '</span>' +
+        '</div>' +
+        '<div class="a lime-btn mono" data-hit="act_deploy" data-label="' + T('Deploy', '출격') + '" style="left:886px;top:11px;width:104px;height:32px;font-size:10.5px;">' +
+          '<span>' + T('DEPLOY', '성채 출격') + '</span>' + ico('arrow-up-right', 14, '#0b0e0a', 2.4) +
+        '</div>' +
+        '<div class="a close-btn" data-hit="close_menu" data-special="close" data-label="' + T('Close', '닫기') + '" style="left:998px;top:11px;width:32px;height:32px;">' +
+          ico('x', 16, '#94a18e', 2.2) +
         '</div>' +
       '</div>' +
 
-      /* Bottom Live Telemetry Dock (opaque #0f1420) */
-      '<div class="a dock-box" style="left:16px;top:484px;width:1024px;height:96px;">' +
-        '<div class="a dynrow" data-dyn="status_primary" data-dyn-scale="0.95" data-dyn-align="left" style="left:14px;top:8px;width:988px;height:34px;">' +
-          T('Active Class: Vanguard Knight | Guild Rank: Mythic III (1,840 XP)', '선택 병과: 선봉 성기사 | 길드 등급: 신화 III (1,840 XP)') +
+      /* Sleek Matte Opaque Footer Telemetry Strip (holds all 4 shared [data-dyn] slots) */
+      '<div class="a footer-bar" style="left:0px;top:510px;width:1056px;height:84px;">' +
+        '<div class="a wallet-pill" style="left:28px;top:22px;width:144px;height:40px;">' +
+          '<div class="a" style="left:10px;top:11px;width:18px;height:18px;">' + ico('coins', 17, '#b4f055', 2.1) + '</div>' +
+          '<div class="a dynval mono" data-dyn="gold" data-dyn-scale="0.92" data-dyn-align="left" style="left:34px;top:2px;width:102px;height:34px;">2,450 G</div>' +
         '</div>' +
-        '<div class="a dynrow" data-dyn="status_secondary" data-dyn-scale="0.90" data-dyn-align="left" style="left:14px;top:46px;width:988px;height:34px;color:#94a3b8;">' +
-          T('Select a class, inspect relics, or accept a bounty contract above.', '위에서 병과를 고르거나 유물·현상금 의뢰를 선택하세요.') +
+        '<div class="a wallet-pill" style="left:180px;top:22px;width:132px;height:40px;">' +
+          '<div class="a" style="left:10px;top:11px;width:18px;height:18px;">' + ico('gem', 17, '#7dd3fc', 2.1) + '</div>' +
+          '<div class="a dynval mono" data-dyn="gems" data-dyn-scale="0.92" data-dyn-align="left" style="left:34px;top:2px;width:90px;height:34px;color:#7dd3fc;">18 Gems</div>' +
+        '</div>' +
+        '<div class="a" style="left:328px;top:16px;width:1px;height:52px;background:#1e271c;"></div>' +
+        '<div class="a dynrow mono" data-dyn="status_primary" data-dyn-scale="0.90" data-dyn-align="left" style="left:346px;top:8px;width:682px;height:34px;">' +
+          T('CLASS: Vanguard Knight (HP 26 / ATK 8)  |  STANDING: Mythic III', '병과: 선봉 기사 (HP 26 / ATK 8)  |  칭호: 신화 III') +
+        '</div>' +
+        '<div class="a dynrow mono" data-dyn="status_secondary" data-dyn-scale="0.86" data-dyn-align="left" style="left:346px;top:44px;width:682px;height:34px;color:#7f8d79;">' +
+          T('Select a class below or switch tabs to inspect relics & contracts.', '아래에서 병과를 고르거나 상단 탭에서 유물·의뢰를 확인하세요.') +
         '</div>' +
       '</div>'
     );
   }
 
+  /* TAB 1: Editorial Hero + Sunlit Voxel Ruin Viewport + Segmented Class Selector */
   function renderHome() {
-    var classes = [
-      { id: 'act_class_knight', cls: 'knight', tone: 'gold', icon: 'swords', en: 'VANGUARD', ko: '선봉 기사', roleEn: 'MELEE TANK', roleKo: '근접 탱커', stat: 'HP 26 · ATK 8', pill: 'gold' },
-      { id: 'act_class_arcanist', cls: 'arcanist', tone: 'violet', icon: 'wand-sparkles', en: 'ARCANIST', ko: '비전 마도사', roleEn: 'BURST MAGE', roleKo: '폭딜 마법', stat: 'HP 18 · MAG 12', pill: 'violet' },
-      { id: 'act_class_ranger', cls: 'ranger', tone: 'emerald', icon: 'bow-arrow', en: 'WINDWALKER', ko: '바람 궁수', roleEn: 'RANGED CRIT', roleKo: '원거리 치명', stat: 'HP 20 · SPD +20%', pill: 'emerald' },
-      { id: 'act_class_cleric', cls: 'cleric', tone: 'sky', icon: 'sun', en: 'DAWNCLERIC', ko: '여명 사제', roleEn: 'HOLY SUPPORT', roleKo: '성광 지원', stat: 'HP 22 · HEAL +6', pill: 'cyan' }
-    ];
-
-    var cards = '';
-    for (var i = 0; i < classes.length; i++) {
-      var c = classes[i];
-      cards +=
-        '<div class="a class-card ' + c.cls + '" data-hit="' + c.id + '" data-label="' + T(c.en, c.ko) + '" style="left:' + (20 + i * 194) + 'px;top:120px;width:182px;height:158px;">' +
-          badge(c.icon, c.tone, 58, 30, true) +
-          '<div style="font-size:15px;font-weight:900;color:#f8fafc;">' + T(c.en, c.ko) + '</div>' +
-          '<span class="pill ' + c.pill + '">' + T(c.roleEn, c.roleKo) + '</span>' +
-          '<div style="font-size:11px;font-weight:700;color:#94a3b8;">' + c.stat + '</div>' +
-        '</div>';
-    }
-
     return (
-      '<div class="a obsidian-frame" style="left:230px;top:92px;width:810px;height:382px;">' +
-        '<div class="a sub-panel" style="left:20px;top:16px;width:764px;height:90px;padding:12px 18px;display:flex;align-items:center;justify-content:space-between;">' +
-          '<div>' +
-            '<div style="font-size:20px;font-weight:900;color:#fde68a;">' + T('CHOOSE YOUR EXPEDITION CLASS', '원정 병과를 선택하세요') + '</div>' +
-            '<div style="font-size:13px;color:#cbd5e1;margin-top:4px;">' + T('Switch classes freely in the Sanctuary before entering the Obsidian Citadel.', '흑요석 성채에 진입하기 전 성소에서 언제든 병과를 바꿀 수 있습니다.') + '</div>' +
+      /* Left Editorial Column */
+      '<div class="a" style="left:28px;top:76px;width:392px;height:418px;">' +
+        '<div class="eyebrow mono" style="margin-top:24px;">' +
+          '<span class="nav-dot"></span><span>' + T('BEDROCK / EXPEDITION STUDY 01', 'BEDROCK / 원정 브리핑 01') + '</span>' +
+        '</div>' +
+        '<div class="hero-h1 ' + (state.lang === 'ko' ? 'ko' : '') + '" style="margin-top:16px;">' +
+          T('OWN THE<br/><span class="lime">CITADEL.</span>', '성채의 전선을<br/><span class="lime">장악하라.</span>') +
+        '</div>' +
+        '<div class="hero-lead" style="margin-top:18px;max-width:356px;">' +
+          T('A full-screen tactical guild interface for Minecraft Bedrock, compiled straight from HTML, CSS, and Lucide icons with zero flicker.', 'HTML, CSS, Lucide 아이콘만으로 제작되어 깜빡임 없이 동작하는 마인크래프트 베드락 풀스크린 길드 인터페이스입니다.') +
+        '</div>' +
+        '<div style="display:flex;align-items:center;gap:14px;margin-top:26px;">' +
+          '<div class="lime-btn mono" data-hit="act_daily" data-label="' + T('Daily +150G', '일일 +150G') + '" style="width:194px;height:42px;font-size:11.5px;">' +
+            '<span>' + T('CLAIM TRIBUTE', '일일 공물 +150G') + '</span>' + ico('arrow-down', 15, '#0b0e0a', 2.4) +
           '</div>' +
-          '<span class="pill gold" style="font-size:12px;padding:5px 10px;">' + ico('shield-check', 14, '#fde68a', 2.2) + T('4 CLASSES', '4종 병과') + '</span>' +
+          '<div class="mono" style="font-size:10px;letter-spacing:1px;color:#62705d;">' + T('LIVE DEMO · +150 G', '실시간 지급 · +150 G') + '</div>' +
         '</div>' +
-        cards +
-        '<div class="a btn emerald" data-hit="act_deploy" data-label="' + T('Enter Citadel', '성채 출격') + '" style="left:20px;top:292px;width:374px;height:68px;font-size:17px;">' +
-          ico('flag', 22, '#a7f3d0', 2.3) + '<span>' + T('ENTER OBSIDIAN CITADEL', '흑요석 성채 출격') + '</span>' +
+        '<div style="height:1px;background:#1c241a;margin-top:34px;"></div>' +
+        '<div class="mono" style="display:flex;gap:18px;margin-top:14px;font-size:9.5px;letter-spacing:1.1px;color:#667461;">' +
+          '<span>BEDROCK 1.26+</span><span>LUCIDE SVG</span><span>ZERO FLICKER</span>' +
         '</div>' +
-        '<div class="a btn gold" data-hit="act_daily" data-label="' + T('Daily Tribute', '일일 공물') + '" style="left:410px;top:292px;width:374px;height:68px;font-size:16px;">' +
-          ico('trophy', 22, '#fef08a', 2.3) + '<span>' + T('CLAIM DAILY TRIBUTE (+150 G)', '일일 공물 수령 (+150 G)') + '</span>' +
+      '</div>' +
+
+      /* Right Viewport Showcase Frame */
+      '<div class="a viewport-card" style="left:446px;top:76px;width:582px;height:348px;">' +
+        '<canvas id="courtyard_cv" data-w="582" data-h="348" class="a" style="left:0px;top:0px;width:582px;height:348px;"></canvas>' +
+        reticleAnimHtml() +
+        '<div class="a glass-chip mono" style="left:16px;top:16px;">' +
+          '<div style="font-size:9px;letter-spacing:1.2px;color:#8fa37c;">FIELD STUDY / 001</div>' +
+          '<div style="font-size:11.5px;font-weight:700;color:#edf2e8;margin-top:2px;">' + T('OBSIDIAN COURTYARD · OVERLOOK', '흑요석 성채 안뜰 · 전술 시야') + '</div>' +
+        '</div>' +
+        '<div class="a glass-pill mono" style="right:16px;top:16px;">' +
+          '<span class="nav-dot"></span><span>' + T('LIVE RETICLE', '실시간 조준') + '</span>' +
+        '</div>' +
+        '<div class="a" style="left:20px;bottom:18px;width:360px;">' +
+          '<div class="mono" style="font-size:10px;letter-spacing:1.2px;color:#a8e64d;">' + T('SECTOR 03 / RIGHT EDGE', '섹터 03 / 우측 모서리') + '</div>' +
+          '<div style="font-size:21px;font-weight:800;color:#f3f7ef;margin-top:3px;">' + T('Clear the right corner.', '우측 성벽 모서리를 확보하세요.') + '</div>' +
+          '<div style="font-size:12px;color:#a6b39f;margin-top:4px;">' + T('Pick a class below to update your live loadout stats.', '아래에서 병과를 선택하면 하단 스탯이 즉시 갱신됩니다.') + '</div>' +
+        '</div>' +
+        '<div class="a mono" style="right:18px;bottom:18px;font-size:9.5px;letter-spacing:1px;color:#73826d;">' + T('BAKED JSONUI · 2X HIDPI', '베이크 JSONUI · 2X 고해상도') + '</div>' +
+      '</div>' +
+
+      /* Segmented Class Selector Bar (matches SELECT A VIEW strip in reference) */
+      '<div class="a selector-strip" style="left:446px;top:434px;width:582px;height:56px;">' +
+        '<div class="mono" style="font-size:10px;letter-spacing:1.2px;color:#74826e;">' + T('SELECT CLASS', '병과 선택') + '</div>' +
+        '<div style="display:flex;gap:8px;">' +
+          '<div class="ghost-btn on mono" data-hit="act_class_knight" data-label="' + T('Vanguard', '선봉 기사') + '" style="padding:0 11px;height:34px;font-size:10.5px;">' + ico('swords', 13, '#0b0e0a', 2.2) + T('VANGUARD', '기사') + '</div>' +
+          '<div class="ghost-btn mono" data-hit="act_class_arcanist" data-label="' + T('Arcanist', '마도사') + '" style="padding:0 11px;height:34px;font-size:10.5px;">' + ico('wand-sparkles', 13, '#c4b5fd', 2.0) + T('ARCANIST', '마도사') + '</div>' +
+          '<div class="ghost-btn mono" data-hit="act_class_ranger" data-label="' + T('Ranger', '궁수') + '" style="padding:0 11px;height:34px;font-size:10.5px;">' + ico('bow-arrow', 13, '#6ee7b7', 2.0) + T('RANGER', '궁수') + '</div>' +
+          '<div class="ghost-btn mono" data-hit="act_class_cleric" data-label="' + T('Cleric', '사제') + '" style="padding:0 11px;height:34px;font-size:10.5px;">' + ico('sun', 13, '#7dd3fc', 2.0) + T('CLERIC', '사제') + '</div>' +
         '</div>' +
       '</div>'
     );
   }
 
+  /* TAB 2: Editorial Armory + Lucide Forge Animation + 6 Crisp Relic Cards */
   function renderShop() {
     var items = [
-      { id: 'pick_0', rar: 'legendary', tone: 'gold', pill: 'gold', icon: 'sword', en: 'Dragonfang Blade', ko: '용아 대검', price: '420 G', descEn: 'Ignites targets on crit strikes.', descKo: '치명타 적중 시 화염 점화.' },
-      { id: 'pick_1', rar: 'rare', tone: 'sky', pill: 'cyan', icon: 'shield-check', en: 'Aegis of Dawn', ko: '여명의 이지스', price: '310 G', descEn: 'Absorbs 35% projectile impact.', descKo: '투사체 피해 35% 경감.' },
-      { id: 'pick_2', rar: 'uncommon', tone: 'emerald', pill: 'emerald', icon: 'wind', en: 'Zephyr Striders', ko: '서풍의 장화', price: '240 G', descEn: 'Grants Swiftness II in sprints.', descKo: '질주 시 신속 II 부여.' },
-      { id: 'pick_3', rar: 'epic', tone: 'violet', pill: 'violet', icon: 'hourglass', en: 'Chrono Hourglass', ko: '시간의 모래시계', price: '6 Gems', descEn: 'Cuts skill cooldowns by 25%.', descKo: '스킬 재사용 대기 25% 단축.' },
-      { id: 'pick_4', rar: 'epic', tone: 'crimson', pill: 'crimson', icon: 'flask-conical', en: 'Phoenix Elixir', ko: '불사조 영약', price: '160 G', descEn: 'Instant +10 HP & Fire Resist.', descKo: '즉시 체력 +10 및 화염 저항.' },
-      { id: 'pick_5', rar: 'rare', tone: 'sky', pill: 'cyan', icon: 'sparkles', en: 'Starlight Lantern', ko: '별빛 등불', price: '4 Gems', descEn: 'Reveals hidden dungeon chests.', descKo: '숨겨진 던전 보물 상자 탐지.' }
+      { id: 'pick_0', feat: true, tone: 'amber', icon: 'sword', en: 'Dragonfang Blade', ko: '용아 대검', price: '420 G', descEn: 'Ignites targets on critical hits.', descKo: '치명타 적중 시 화염 점화.' },
+      { id: 'pick_1', feat: false, tone: 'sky', icon: 'shield-check', en: 'Aegis of Dawn', ko: '여명의 이지스', price: '310 G', descEn: 'Absorbs 35% projectile impact.', descKo: '투사체 피해 35% 경감.' },
+      { id: 'pick_2', feat: false, tone: '', icon: 'wind', en: 'Zephyr Striders', ko: '서풍의 장화', price: '240 G', descEn: 'Grants Swiftness II while sprinting.', descKo: '질주 시 신속 II 부여.' },
+      { id: 'pick_3', feat: false, tone: 'violet', icon: 'hourglass', en: 'Chrono Hourglass', ko: '시간의 모래시계', price: '6 Gems', descEn: 'Cuts skill cooldowns by 25%.', descKo: '스킬 재사용 대기 25% 단축.' },
+      { id: 'pick_4', feat: false, tone: 'rose', icon: 'flask-conical', en: 'Phoenix Elixir', ko: '불사조 영약', price: '160 G', descEn: 'Instant +10 HP & Fire Resistance.', descKo: '즉시 체력 +10 및 화염 저항.' },
+      { id: 'pick_5', feat: false, tone: 'sky', icon: 'sparkles', en: 'Starlight Lantern', ko: '별빛 등불', price: '4 Gems', descEn: 'Reveals hidden dungeon caches.', descKo: '숨겨진 던전 보물 상자 탐지.' }
     ];
 
     var cards = '';
@@ -483,113 +620,122 @@
       var col = i % 3;
       var row = Math.floor(i / 3);
       cards +=
-        '<div class="a relic-card ' + it.rar + '" data-hit="' + it.id + '" data-label="' + T(it.en, it.ko) + '" style="left:' + (20 + col * 258) + 'px;top:' + (116 + row * 128) + 'px;width:246px;height:116px;">' +
-          '<div style="display:flex;align-items:center;gap:11px;">' +
-            badge(it.icon, it.tone, 44, 23, false) +
-            '<div style="min-width:0;">' +
-              '<div style="font-size:14px;font-weight:900;color:#f8fafc;">' + T(it.en, it.ko) + '</div>' +
-              '<span class="pill ' + it.pill + '" style="margin-top:4px;">' + it.price + '</span>' +
+        '<div class="a web-card ' + (it.feat ? 'featured' : '') + '" data-hit="' + it.id + '" data-label="' + T(it.en, it.ko) + '" style="left:' + (28 + col * 340) + 'px;top:' + (186 + row * 154) + 'px;width:320px;height:136px;">' +
+          '<div style="display:flex;align-items:center;justify-content:space-between;">' +
+            '<div style="display:flex;align-items:center;gap:11px;">' +
+              '<div class="icon-chip ' + it.tone + '">' + ico(it.icon, 18, '', 2.0) + '</div>' +
+              '<div>' +
+                '<div style="font-size:15px;font-weight:800;color:#edf2e8;">' + T(it.en, it.ko) + '</div>' +
+                '<div class="mono" style="font-size:10px;color:#73826d;margin-top:2px;">ITEM 0' + (i + 1) + '</div>' +
+              '</div>' +
             '</div>' +
+            '<span class="tag-pill mono">' + it.price + '</span>' +
           '</div>' +
-          '<div style="font-size:12px;color:#cbd5e1;">' + T(it.descEn, it.descKo) + '</div>' +
+          '<div style="font-size:12.5px;color:#93a18d;line-height:1.45;">' + T(it.descEn, it.descKo) + '</div>' +
         '</div>';
     }
 
     return (
-      '<div class="a obsidian-frame" style="left:230px;top:92px;width:810px;height:382px;">' +
-        '<div class="a sub-panel" style="left:20px;top:14px;width:764px;height:90px;">' +
-          '<div class="a" style="left:12px;top:4px;width:142px;height:80px;border:2px solid #6e4a12;background:#111623;">' +
-            forgeAnimHtml() +
-          '</div>' +
-          '<div class="a" style="left:170px;top:14px;width:368px;height:62px;">' +
-            '<div style="font-size:19px;font-weight:900;color:#fde68a;">' + T('RUNIC RELIC ARMORY', '룬 유물 무기고') + '</div>' +
-            '<div style="font-size:12px;color:#cbd5e1;margin-top:4px;">' + T('Click a card to inspect below, then forge to purchase.', '카드를 눌러 하단 정보를 확인한 뒤 구매하세요.') + '</div>' +
-          '</div>' +
-          '<div class="a btn gold" data-hit="act_buy" data-label="' + T('Forge & Buy', '구매하기') + '" style="left:548px;top:16px;width:200px;height:54px;font-size:15px;">' +
-            ico('hammer', 19, '#fef08a', 2.2) + '<span>' + T('PURCHASE RELIC', '선택 유물 구매') + '</span>' +
-          '</div>' +
+      /* Top Armory Editorial Banner with Lucide Forge Animation */
+      '<div class="a viewport-card" style="left:28px;top:74px;width:1000px;height:94px;">' +
+        '<div class="a" style="left:14px;top:8px;width:138px;height:78px;border:1px solid #242f20;background:#0f140e;">' +
+          forgeAnimHtml() +
         '</div>' +
-        cards +
-      '</div>'
+        '<div class="a" style="left:172px;top:16px;width:560px;">' +
+          '<div class="eyebrow mono"><span class="nav-dot"></span><span>' + T('02 / RUNIC ARMORY', '02 / 룬 유물 무기고') + '</span></div>' +
+          '<div style="font-size:24px;font-weight:900;color:#edf2e8;margin-top:4px;letter-spacing:-0.6px;">' + T('Forge tactical relics.', '전술 유물을 제작하고 장착하세요.') + '</div>' +
+        '</div>' +
+        '<div class="a lime-btn mono" data-hit="act_buy" data-label="' + T('Purchase Relic', '유물 구매') + '" style="right:18px;top:24px;width:210px;height:44px;font-size:11.5px;">' +
+          ico('hammer', 16, '#0b0e0a', 2.2) + '<span>' + T('PURCHASE SELECTED', '선택 유물 구매') + '</span>' +
+        '</div>' +
+      '</div>' +
+      cards
     );
   }
 
+  /* TAB 3: Clean Editorial Bounty Contracts */
   function renderQuests() {
     var quests = [
-      { id: 'quest_0', tone: 'crimson', icon: 'skull', tier: 'S-RANK', pill: 'crimson', en: 'Slay the Crimson Wyrm', ko: '진홍빛 와이번 토벌', descEn: 'Defeat the Ashpeak Boss inside the Volcanic Caldera.', descKo: '화산 분화구의 잿빛봉우리 보스를 격파하세요.', reward: '+600 G · +3 Gems' },
-      { id: 'quest_1', tone: 'sky', icon: 'castle', tier: 'A-RANK', pill: 'cyan', en: 'Hold the Northern Bastion', ko: '북부 성채 방어전', descEn: 'Survive 3 siege waves without losing the Gate Beacon.', descKo: '성문 신호기를 지키며 공성 웨이브 3회를 버티세요.', reward: '+380 G · +2 Gems' },
-      { id: 'quest_2', tone: 'violet', icon: 'orbit', tier: 'B-RANK', pill: 'violet', en: 'Recover Astral Shards', ko: '별빛 파편 회수', descEn: 'Gather 12 glowing Astral Shards from the Sunken Sanctum.', descKo: '가라앉은 성소에서 빛나는 별빛 파편 12개를 모으세요.', reward: '+220 G · +1 Gem' }
+      { id: 'quest_0', tone: 'rose', pill: 'rose', icon: 'skull', tier: 'S-RANK', en: 'Slay the Crimson Wyrm', ko: '진홍빛 와이번 토벌', descEn: 'Defeat the Ashpeak Boss inside the Volcanic Caldera.', descKo: '화산 분화구의 잿빛봉우리 보스를 격파하세요.', reward: '+600 G · +3 Gems' },
+      { id: 'quest_1', tone: 'sky', pill: 'sky', icon: 'castle', tier: 'A-RANK', en: 'Hold the Northern Bastion', ko: '북부 성채 방어전', descEn: 'Survive 3 siege waves without losing the Gate Beacon.', descKo: '성문 신호기를 지키며 공성 웨이브 3회를 버티세요.', reward: '+380 G · +2 Gems' },
+      { id: 'quest_2', tone: 'violet', pill: '', icon: 'orbit', tier: 'B-RANK', en: 'Recover Astral Shards', ko: '별빛 파편 회수', descEn: 'Gather 12 glowing Astral Shards from the Sunken Sanctum.', descKo: '가라앉은 성소에서 빛나는 별빛 파편 12개를 모으세요.', reward: '+220 G · +1 Gem' }
     ];
 
     var rows = '';
     for (var i = 0; i < quests.length; i++) {
       var q = quests[i];
       rows +=
-        '<div class="a quest-card" data-hit="' + q.id + '" data-label="' + T(q.en, q.ko) + '" style="left:20px;top:' + (88 + i * 94) + 'px;width:764px;height:84px;">' +
-          '<div style="display:flex;align-items:center;gap:14px;">' +
-            badge(q.icon, q.tone, 50, 26, false) +
+        '<div class="a web-card ' + (i === 0 ? 'featured' : '') + '" data-hit="' + q.id + '" data-label="' + T(q.en, q.ko) + '" style="left:28px;top:' + (182 + i * 104) + 'px;width:1000px;height:88px;flex-direction:row;align-items:center;">' +
+          '<div style="display:flex;align-items:center;gap:16px;">' +
+            '<div class="icon-chip ' + q.tone + '" style="width:44px;height:44px;">' + ico(q.icon, 22, '', 2.0) + '</div>' +
             '<div>' +
-              '<div style="display:flex;align-items:center;gap:8px;">' +
-                '<span class="pill ' + q.pill + '">' + q.tier + '</span>' +
-                '<span style="font-size:16px;font-weight:900;color:#f8fafc;">' + T(q.en, q.ko) + '</span>' +
+              '<div style="display:flex;align-items:center;gap:10px;">' +
+                '<span class="tag-pill ' + q.pill + ' mono">' + q.tier + '</span>' +
+                '<span style="font-size:17px;font-weight:800;color:#edf2e8;">' + T(q.en, q.ko) + '</span>' +
               '</div>' +
-              '<div style="font-size:12px;color:#cbd5e1;margin-top:4px;">' + T(q.descEn, q.descKo) + '</div>' +
+              '<div style="font-size:12.5px;color:#93a18d;margin-top:4px;">' + T(q.descEn, q.descKo) + '</div>' +
             '</div>' +
           '</div>' +
-          '<span class="pill gold" style="font-size:12px;padding:5px 10px;white-space:nowrap;">' + q.reward + '</span>' +
+          '<span class="tag-pill mono" style="padding:6px 12px;font-size:11px;">' + q.reward + '</span>' +
         '</div>';
     }
 
     return (
-      '<div class="a obsidian-frame" style="left:230px;top:92px;width:810px;height:382px;">' +
-        '<div class="a sub-panel" style="left:20px;top:14px;width:764px;height:62px;padding:0 16px;display:flex;align-items:center;justify-content:space-between;">' +
-          '<div style="font-size:19px;font-weight:900;color:#fde68a;">' + T('ACTIVE BOUNTY CONTRACTS', '길드 현상금 의뢰 게시판') + '</div>' +
-          '<div class="btn arcane" data-hit="act_accept_quest" data-label="' + T('Track Quest', '의뢰 수락') + '" style="width:210px;height:42px;font-size:14px;">' +
-            ico('target', 18, '#ddd6fe', 2.2) + '<span>' + T('ACCEPT & TRACK', '선택 의뢰 수락') + '</span>' +
-          '</div>' +
+      '<div class="a" style="left:28px;top:76px;width:1000px;height:90px;border-bottom:1px solid #1d251b;display:flex;align-items:center;justify-content:space-between;">' +
+        '<div>' +
+          '<div class="eyebrow mono"><span class="nav-dot"></span><span>' + T('03 / FIELD CONTRACTS', '03 / 길드 현상금 의뢰') + '</span></div>' +
+          '<div style="font-size:28px;font-weight:900;color:#edf2e8;margin-top:6px;letter-spacing:-0.8px;">' + T('Active bounty missions.', '진행 가능한 현상금 의뢰 목록.') + '</div>' +
         '</div>' +
-        rows +
-      '</div>'
+        '<div class="lime-btn mono" data-hit="act_accept_quest" data-label="' + T('Track Quest', '의뢰 수락') + '" style="width:214px;height:42px;font-size:11.5px;">' +
+          ico('target', 16, '#0b0e0a', 2.2) + '<span>' + T('ACCEPT & TRACK', '선택 의뢰 수락') + '</span>' +
+        '</div>' +
+      '</div>' +
+      rows
     );
   }
 
+  /* TAB 4: Editorial Field Notes & Settings (matches bottom section of reference!) */
   function renderProfile() {
-    var tiles = [
-      { id: 'act_toggle_sfx', tone: 'gold', icon: 'volume-2', en: 'UI SOUND EFFECTS', ko: '메뉴 효과음 전환', subEn: 'Toggle personal click & forge SFX', subKo: '클릭·구매 사운드 켜기/끄기' },
-      { id: 'act_toggle_aura', tone: 'violet', icon: 'sparkles', en: 'SANCTUARY AURA', ko: '성소 오라 이펙트', subEn: 'Toggle cosmetic particle ring', subKo: '치장 파티클 오라 켜기/끄기' },
-      { id: 'act_cycle_title', tone: 'sky', icon: 'award', en: 'GUILD TITLE', ko: '길드 칭호 변경', subEn: 'Cycle Mythic / Warden / Sage', subKo: '신화 · 수호자 · 현자 칭호 순환' },
-      { id: 'act_reset_demo', tone: 'crimson', icon: 'rotate-ccw', en: 'RESET DEMO DATA', ko: '데모 데이터 초기화', subEn: 'Restore 2,450 G & 18 Gems', subKo: '2,450 G 및 18 Gems 복원' }
+    var notes = [
+      { id: 'act_toggle_sfx', num: '01', tone: '', icon: 'volume-2', en: 'UI Audio Feedback', ko: '메뉴 효과음 전환', subEn: 'Toggle personal click, anvil forge, and alert cues.', subKo: '클릭·제작·알림 사운드를 켜거나 끕니다.' },
+      { id: 'act_toggle_aura', num: '02', tone: 'violet', icon: 'sparkles', en: 'Sanctuary Aura', ko: '성소 오라 이펙트', subEn: 'Toggle cosmetic ambient particle halo in hub.', subKo: '허브에서 표시되는 파티클 오라를 전환합니다.' },
+      { id: 'act_cycle_title', num: '03', tone: 'sky', icon: 'award', en: 'Guild Standing Title', ko: '길드 칭호 순환', subEn: 'Cycle Mythic III / Citadel Warden / Astral Sage.', subKo: '신화 III · 성채 수호자 · 성좌 현자 칭호 변경.' },
+      { id: 'act_reset_demo', num: '04', tone: 'rose', icon: 'rotate-ccw', en: 'Reset Session Data', ko: '데모 데이터 초기화', subEn: 'Restore starting 2,450 G and 18 Gems balance.', subKo: '초기 재화 2,450 G와 18 Gems 상태로 복원합니다.' }
     ];
 
     var grid = '';
-    for (var i = 0; i < tiles.length; i++) {
-      var tl = tiles[i];
+    for (var i = 0; i < notes.length; i++) {
+      var n = notes[i];
       var col = i % 2;
       var row = Math.floor(i / 2);
       grid +=
-        '<div class="a setting-card" data-hit="' + tl.id + '" data-label="' + T(tl.en, tl.ko) + '" style="left:' + (20 + col * 390) + 'px;top:' + (146 + row * 112) + 'px;width:374px;height:96px;">' +
-          badge(tl.icon, tl.tone, 48, 25, false) +
+        '<div class="a web-card" data-hit="' + n.id + '" data-label="' + T(n.en, n.ko) + '" style="left:' + (370 + col * 336) + 'px;top:' + (110 + row * 184) + 'px;width:320px;height:164px;">' +
+          '<div style="display:flex;align-items:center;justify-content:space-between;">' +
+            '<span class="mono" style="font-size:10px;letter-spacing:1.2px;color:#a8e64d;">' + n.num + ' · MODULE</span>' +
+            '<div class="icon-chip ' + n.tone + '">' + ico(n.icon, 18, '', 2.0) + '</div>' +
+          '</div>' +
           '<div>' +
-            '<div style="font-size:16px;font-weight:900;color:#fef3c7;">' + T(tl.en, tl.ko) + '</div>' +
-            '<div style="font-size:12px;color:#94a3b8;margin-top:4px;">' + T(tl.subEn, tl.subKo) + '</div>' +
+            '<div style="font-size:18px;font-weight:800;color:#edf2e8;margin-bottom:6px;">' + T(n.en, n.ko) + '</div>' +
+            '<div style="font-size:12.5px;color:#93a18d;line-height:1.5;">' + T(n.subEn, n.subKo) + '</div>' +
           '</div>' +
         '</div>';
     }
 
     return (
-      '<div class="a obsidian-frame" style="left:230px;top:92px;width:810px;height:382px;">' +
-        '<div class="a sub-panel" style="left:20px;top:16px;width:764px;height:112px;padding:16px 20px;display:flex;align-items:center;justify-content:space-between;">' +
-          '<div style="display:flex;align-items:center;gap:16px;">' +
-            badge('crown', 'gold', 54, 28, false) +
-            '<div>' +
-              '<div style="font-size:21px;font-weight:900;color:#fde68a;">' + T('CODEX PREFERENCES & STANDING', '코덱스 설정 및 길드 기록') + '</div>' +
-              '<div style="font-size:13px;color:#cbd5e1;margin-top:5px;">' + T('All toggles update live via server-side dynamic slots with zero state explosion.', '모든 설정은 상태 수 증가 없이 하단 실시간 슬롯으로 즉시 반영됩니다.') + '</div>' +
-            '</div>' +
-          '</div>' +
-          '<span class="pill violet" style="font-size:12px;padding:6px 12px;">8 STATES · 4 DYN</span>' +
+      '<div class="a" style="left:28px;top:92px;width:316px;height:386px;">' +
+        '<div class="eyebrow mono"><span class="nav-dot"></span><span>' + T('04 / BUILD NOTES', '04 / 설정 및 사양') + '</span></div>' +
+        '<div class="hero-h1 ' + (state.lang === 'ko' ? 'ko' : '') + '" style="font-size:38px;margin-top:14px;">' +
+          T('A cleaner<br/><span class="lime">workflow.</span>', '더 깔끔한<br/><span class="lime">워크플로우.</span>') +
         '</div>' +
-        grid +
-      '</div>'
+        '<div class="hero-lead" style="margin-top:16px;">' +
+          T('Every toggle updates live through 4 shared dynamic slots without inflating baked state count. Click any card on the right to mutate server state.', '모든 설정은 상태 수를 늘리지 않고 하단의 공유 동적 슬롯 4개로 실시간 반영됩니다. 우측 카드를 눌러 즉시 변경하세요.') +
+        '</div>' +
+        '<div style="height:1px;background:#1c241a;margin-top:26px;"></div>' +
+        '<div class="mono" style="margin-top:14px;font-size:10px;line-height:1.9;color:#6f7d69;">' +
+          'STATES: 8 / 64 MAX<br/>DYN SLOTS: 4 SHARED<br/>FLIPBOOKS: 2 LUCIDE SVG' +
+        '</div>' +
+      '</div>' +
+      grid
     );
   }
 
@@ -599,8 +745,9 @@
       : state.tab === 'quests' ? renderQuests()
       : state.tab === 'profile' ? renderProfile()
       : renderHome();
-    app.innerHTML = renderChrome() + body;
+    app.innerHTML = renderTopAndFooter() + body;
     hydrateLucide(app);
+    drawVoxelScene('courtyard_cv', 'courtyard');
     if (window.__BAKE_HEADLESS__) {
       app.querySelectorAll('[data-dyn]').forEach(function (el) { el.style.color = 'transparent'; });
     }
@@ -637,7 +784,7 @@
 
   window.__BAKE__ = {
     getStateKey: function () { return keyOf(state); },
-    getMeta: function () { return { url: 'codex://' + keyOf(state), title: 'Aetherium Guild Codex' }; },
+    getMeta: function () { return { url: 'codex://' + keyOf(state), title: 'Aetherium Field Codex' }; },
     setStateKey: function (k) {
       var parts = String(k || 'en_home').split('_');
       state.lang = parts[0] === 'ko' ? 'ko' : 'en';

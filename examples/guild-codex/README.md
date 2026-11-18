@@ -4,7 +4,8 @@ A self-contained, high-craft Minecraft Bedrock menu built with **`bedrock-baked-
 
 - **8 additive states** (`4` pages x `2` languages `en_*` / `ko_*`)
 - **4 shared `[data-dyn]` live slots** (`gold`, `gems`, `status_primary`, `status_secondary`), leaving up to **21 buttons per page**
-- **2 crisp 2x HiDPI `flip_book` animations built purely with Lucide SVGs + CSS transforms** (`portal_core` 12 frames using `orbit`/`gem`/`sparkle` & `forge_flame` 10 frames using `anvil`/`hammer`/`flame`/`sparkle`, both under `2800px` sheet width with zero downscaling)
+- **Modern editorial dark Minecraft web aesthetic** (`#0b0e0a` matte surface, `#b4f055` lime accents, 1px borders, sunlit voxel ruin viewport)
+- **2 crisp 2x HiDPI `flip_book` animations built purely with Lucide SVGs + CSS transforms** (`tactical_reticle` 12 frames using `crosshair`/`sparkle` & `forge_flame` 10 frames using `anvil`/`hammer`/`flame`/`sparkle`, both under `2800px` sheet width with zero downscaling)
 - **Bundled [Lucide Icons](https://lucide.dev) (`v1.75.0`, ISC License)** inside `ui-src/vendor/lucide.min.js` for 100% offline headless baking with standard `<i data-lucide="..."></i>` markup
 - **Complete Behavior Pack script** ([packs/bp/src/main.ts](packs/bp/src/main.ts)) wired to `BakedMenuManager`
 
