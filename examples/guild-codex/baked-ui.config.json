@@ -1,0 +1,21 @@
+{
+  "namespace": "guild_codex",
+  "entityId": "guild_codex:menu",
+  "rpDir": "packs/rp",
+  "bpDir": "packs/bp",
+  "site": {
+    "entry": "ui-src/index.html",
+    "viewport": [1056, 594],
+    "sourceScale": 3,
+    "texScale": 2,
+    "maxStates": 64,
+    "maxSheetWidth": 2800,
+    "theme": "gold",
+    "backdropColor": [13, 17, 26],
+    "quantize": true,
+    "emitEntity": true,
+    "emitActionForm": true,
+    "textureSubdir": "guild_codex",
+    "manifestOut": "packs/bp/src/generated/baked_site.json"
+  }
+}

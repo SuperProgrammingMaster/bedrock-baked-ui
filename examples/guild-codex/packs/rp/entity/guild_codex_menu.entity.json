@@ -1,0 +1,21 @@
+{
+  "format_version": "1.10.0",
+  "minecraft:client_entity": {
+    "description": {
+      "identifier": "guild_codex:menu",
+      "min_engine_version": "1.8.0",
+      "materials": {
+        "default": "entity_alphatest"
+      },
+      "textures": {
+        "default": "textures/entity/guild_codex/empty"
+      },
+      "geometry": {
+        "default": "geometry.guild_codex.menu"
+      },
+      "render_controllers": [
+        "controller.render.guild_codex.menu"
+      ]
+    }
+  }
+}

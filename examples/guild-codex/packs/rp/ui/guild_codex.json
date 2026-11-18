@@ -1,0 +1,2961 @@
+{
+  "namespace": "guild_codex",
+  "fb_portal_core": {
+    "anim_type": "flip_book",
+    "initial_uv": [
+      0,
+      0
+    ],
+    "frame_count": 10,
+    "frame_step": 272,
+    "fps": 5,
+    "reversible": false,
+    "easing": "linear"
+  },
+  "fb_forge_flame": {
+    "anim_type": "flip_book",
+    "initial_uv": [
+      0,
+      0
+    ],
+    "frame_count": 8,
+    "frame_step": 320,
+    "fps": 6,
+    "reversible": false,
+    "easing": "linear"
+  },
+  "empty_cell": {
+    "type": "panel",
+    "size": [
+      18,
+      18
+    ]
+  },
+  "inv_hitbox_btn": {
+    "type": "button",
+    "anchor_from": "top_left",
+    "anchor_to": "top_left",
+    "offset": "$hoff",
+    "size": "$hsize",
+    "layer": 8,
+    "default_control": "default",
+    "hover_control": "hover",
+    "pressed_control": "pressed",
+    "sound_name": "random.click",
+    "sound_volume": 0.6,
+    "sound_pitch": 1,
+    "controls": [
+      {
+        "default": {
+          "type": "image",
+          "texture": "textures/ui/guild_codex/hit_idle",
+          "size": [
+            "100%",
+            "100%"
+          ],
+          "layer": 8
+        }
+      },
+      {
+        "hover": {
+          "type": "image",
+          "texture": "textures/ui/guild_codex/hit_hover",
+          "size": [
+            "100%",
+            "100%"
+          ],
+          "layer": 9
+        }
+      },
+      {
+        "pressed": {
+          "type": "image",
+          "texture": "textures/ui/guild_codex/hit_press",
+          "size": [
+            "100%",
+            "100%"
+          ],
+          "layer": 9
+        }
+      }
+    ],
+    "button_mappings": [
+      {
+        "from_button_id": "button.menu_select",
+        "to_button_id": "button.container_auto_place",
+        "mapping_type": "pressed",
+        "consume_event": false
+      },
+      {
+        "from_button_id": "button.menu_ok",
+        "to_button_id": "button.container_auto_place",
+        "mapping_type": "focused",
+        "consume_event": false
+      }
+    ],
+    "bindings": [
+      {
+        "binding_type": "collection_details",
+        "binding_collection_name": "container_items"
+      },
+      {
+        "binding_name": "#hover_text",
+        "binding_type": "collection",
+        "binding_collection_name": "container_items",
+        "binding_condition": "always"
+      },
+      {
+        "binding_type": "view",
+        "source_property_name": "(not ((#hover_text - $htag) = #hover_text))",
+        "target_property_name": "#visible"
+      }
+    ]
+  },
+  "inv_exit_btn@guild_codex.inv_hitbox_btn": {
+    "button_mappings": [
+      {
+        "from_button_id": "button.menu_select",
+        "to_button_id": "button.menu_exit",
+        "mapping_type": "pressed"
+      },
+      {
+        "from_button_id": "button.menu_ok",
+        "to_button_id": "button.menu_exit",
+        "mapping_type": "focused"
+      }
+    ]
+  },
+  "inv_window": {
+    "type": "panel",
+    "size": [
+      "100%",
+      "56.25%x"
+    ],
+    "anchor_from": "center",
+    "anchor_to": "center",
+    "layer": 2,
+    "controls": [
+      {
+        "inv_stack": {
+          "type": "stack_panel",
+          "orientation": "vertical",
+          "anchor_from": "top_left",
+          "anchor_to": "top_left",
+          "size": [
+            "100%",
+            "100%"
+          ],
+          "clips_children": false,
+          "collection_name": "container_items",
+          "controls": [
+            {
+              "slot_01_state": {
+                "type": "panel",
+                "size": [
+                  "100%",
+                  0
+                ],
+                "clips_children": false,
+                "collection_index": 1,
+                "controls": [
+                  {
+                    "stpanel_00": {
+                      "type": "panel",
+                      "size": [
+                        "100%",
+                        "56.25%x"
+                      ],
+                      "anchor_from": "top_left",
+                      "anchor_to": "top_left",
+                      "bindings": [
+                        {
+                          "binding_name": "#hover_text",
+                          "binding_type": "collection",
+                          "binding_collection_name": "container_items",
+                          "binding_condition": "always"
+                        },
+                        {
+                          "binding_type": "view",
+                          "source_property_name": "(not ((#hover_text - '§s§0§0') = #hover_text))",
+                          "target_property_name": "#visible"
+                        }
+                      ],
+                      "controls": [
+                        {
+                          "bg": {
+                            "type": "image",
+                            "texture": "textures/ui/guild_codex/s_00_en_home",
+                            "keep_ratio": false,
+                            "size": [
+                              "100%",
+                              "100%"
+                            ],
+                            "anchor_from": "top_left",
+                            "anchor_to": "top_left",
+                            "layer": 3
+                          }
+                        },
+                        {
+                          "anim_0": {
+                            "type": "image",
+                            "texture": "textures/ui/guild_codex/anim_portal_core",
+                            "keep_ratio": false,
+                            "anchor_from": "top_left",
+                            "anchor_to": "top_left",
+                            "offset": [
+                              "4.735%",
+                              "57.239%"
+                            ],
+                            "size": [
+                              "12.879%",
+                              "19.192%"
+                            ],
+                            "uv_size": [
+                              272,
+                              228
+                            ],
+                            "uv": "@guild_codex.fb_portal_core",
+                            "disable_anim_fast_forward": true,
+                            "layer": 5
+                          }
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stpanel_01": {
+                      "type": "panel",
+                      "size": [
+                        "100%",
+                        "56.25%x"
+                      ],
+                      "anchor_from": "top_left",
+                      "anchor_to": "top_left",
+                      "bindings": [
+                        {
+                          "binding_name": "#hover_text",
+                          "binding_type": "collection",
+                          "binding_collection_name": "container_items",
+                          "binding_condition": "always"
+                        },
+                        {
+                          "binding_type": "view",
+                          "source_property_name": "(not ((#hover_text - '§s§0§1') = #hover_text))",
+                          "target_property_name": "#visible"
+                        }
+                      ],
+                      "controls": [
+                        {
+                          "bg": {
+                            "type": "image",
+                            "texture": "textures/ui/guild_codex/s_01_ko_home",
+                            "keep_ratio": false,
+                            "size": [
+                              "100%",
+                              "100%"
+                            ],
+                            "anchor_from": "top_left",
+                            "anchor_to": "top_left",
+                            "layer": 3
+                          }
+                        },
+                        {
+                          "anim_0": {
+                            "type": "image",
+                            "texture": "textures/ui/guild_codex/anim_portal_core",
+                            "keep_ratio": false,
+                            "anchor_from": "top_left",
+                            "anchor_to": "top_left",
+                            "offset": [
+                              "4.735%",
+                              "57.239%"
+                            ],
+                            "size": [
+                              "12.879%",
+                              "19.192%"
+                            ],
+                            "uv_size": [
+                              272,
+                              228
+                            ],
+                            "uv": "@guild_codex.fb_portal_core",
+                            "disable_anim_fast_forward": true,
+                            "layer": 5
+                          }
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stpanel_02": {
+                      "type": "panel",
+                      "size": [
+                        "100%",
+                        "56.25%x"
+                      ],
+                      "anchor_from": "top_left",
+                      "anchor_to": "top_left",
+                      "bindings": [
+                        {
+                          "binding_name": "#hover_text",
+                          "binding_type": "collection",
+                          "binding_collection_name": "container_items",
+                          "binding_condition": "always"
+                        },
+                        {
+                          "binding_type": "view",
+                          "source_property_name": "(not ((#hover_text - '§s§0§2') = #hover_text))",
+                          "target_property_name": "#visible"
+                        }
+                      ],
+                      "controls": [
+                        {
+                          "bg": {
+                            "type": "image",
+                            "texture": "textures/ui/guild_codex/s_02_en_shop",
+                            "keep_ratio": false,
+                            "size": [
+                              "100%",
+                              "100%"
+                            ],
+                            "anchor_from": "top_left",
+                            "anchor_to": "top_left",
+                            "layer": 3
+                          }
+                        },
+                        {
+                          "anim_0": {
+                            "type": "image",
+                            "texture": "textures/ui/guild_codex/anim_portal_core",
+                            "keep_ratio": false,
+                            "anchor_from": "top_left",
+                            "anchor_to": "top_left",
+                            "offset": [
+                              "4.735%",
+                              "57.239%"
+                            ],
+                            "size": [
+                              "12.879%",
+                              "19.192%"
+                            ],
+                            "uv_size": [
+                              272,
+                              228
+                            ],
+                            "uv": "@guild_codex.fb_portal_core",
+                            "disable_anim_fast_forward": true,
+                            "layer": 5
+                          }
+                        },
+                        {
+                          "anim_1": {
+                            "type": "image",
+                            "texture": "textures/ui/guild_codex/anim_forge_flame",
+                            "keep_ratio": false,
+                            "anchor_from": "top_left",
+                            "anchor_to": "top_left",
+                            "offset": [
+                              "25.473%",
+                              "19.697%"
+                            ],
+                            "size": [
+                              "15.152%",
+                              "12.795%"
+                            ],
+                            "uv_size": [
+                              320,
+                              152
+                            ],
+                            "uv": "@guild_codex.fb_forge_flame",
+                            "disable_anim_fast_forward": true,
+                            "layer": 5
+                          }
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stpanel_03": {
+                      "type": "panel",
+                      "size": [
+                        "100%",
+                        "56.25%x"
+                      ],
+                      "anchor_from": "top_left",
+                      "anchor_to": "top_left",
+                      "bindings": [
+                        {
+                          "binding_name": "#hover_text",
+                          "binding_type": "collection",
+                          "binding_collection_name": "container_items",
+                          "binding_condition": "always"
+                        },
+                        {
+                          "binding_type": "view",
+                          "source_property_name": "(not ((#hover_text - '§s§0§3') = #hover_text))",
+                          "target_property_name": "#visible"
+                        }
+                      ],
+                      "controls": [
+                        {
+                          "bg": {
+                            "type": "image",
+                            "texture": "textures/ui/guild_codex/s_03_en_quests",
+                            "keep_ratio": false,
+                            "size": [
+                              "100%",
+                              "100%"
+                            ],
+                            "anchor_from": "top_left",
+                            "anchor_to": "top_left",
+                            "layer": 3
+                          }
+                        },
+                        {
+                          "anim_0": {
+                            "type": "image",
+                            "texture": "textures/ui/guild_codex/anim_portal_core",
+                            "keep_ratio": false,
+                            "anchor_from": "top_left",
+                            "anchor_to": "top_left",
+                            "offset": [
+                              "4.735%",
+                              "57.239%"
+                            ],
+                            "size": [
+                              "12.879%",
+                              "19.192%"
+                            ],
+                            "uv_size": [
+                              272,
+                              228
+                            ],
+                            "uv": "@guild_codex.fb_portal_core",
+                            "disable_anim_fast_forward": true,
+                            "layer": 5
+                          }
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stpanel_04": {
+                      "type": "panel",
+                      "size": [
+                        "100%",
+                        "56.25%x"
+                      ],
+                      "anchor_from": "top_left",
+                      "anchor_to": "top_left",
+                      "bindings": [
+                        {
+                          "binding_name": "#hover_text",
+                          "binding_type": "collection",
+                          "binding_collection_name": "container_items",
+                          "binding_condition": "always"
+                        },
+                        {
+                          "binding_type": "view",
+                          "source_property_name": "(not ((#hover_text - '§s§0§4') = #hover_text))",
+                          "target_property_name": "#visible"
+                        }
+                      ],
+                      "controls": [
+                        {
+                          "bg": {
+                            "type": "image",
+                            "texture": "textures/ui/guild_codex/s_04_en_profile",
+                            "keep_ratio": false,
+                            "size": [
+                              "100%",
+                              "100%"
+                            ],
+                            "anchor_from": "top_left",
+                            "anchor_to": "top_left",
+                            "layer": 3
+                          }
+                        },
+                        {
+                          "anim_0": {
+                            "type": "image",
+                            "texture": "textures/ui/guild_codex/anim_portal_core",
+                            "keep_ratio": false,
+                            "anchor_from": "top_left",
+                            "anchor_to": "top_left",
+                            "offset": [
+                              "4.735%",
+                              "57.239%"
+                            ],
+                            "size": [
+                              "12.879%",
+                              "19.192%"
+                            ],
+                            "uv_size": [
+                              272,
+                              228
+                            ],
+                            "uv": "@guild_codex.fb_portal_core",
+                            "disable_anim_fast_forward": true,
+                            "layer": 5
+                          }
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stpanel_05": {
+                      "type": "panel",
+                      "size": [
+                        "100%",
+                        "56.25%x"
+                      ],
+                      "anchor_from": "top_left",
+                      "anchor_to": "top_left",
+                      "bindings": [
+                        {
+                          "binding_name": "#hover_text",
+                          "binding_type": "collection",
+                          "binding_collection_name": "container_items",
+                          "binding_condition": "always"
+                        },
+                        {
+                          "binding_type": "view",
+                          "source_property_name": "(not ((#hover_text - '§s§0§5') = #hover_text))",
+                          "target_property_name": "#visible"
+                        }
+                      ],
+                      "controls": [
+                        {
+                          "bg": {
+                            "type": "image",
+                            "texture": "textures/ui/guild_codex/s_05_ko_shop",
+                            "keep_ratio": false,
+                            "size": [
+                              "100%",
+                              "100%"
+                            ],
+                            "anchor_from": "top_left",
+                            "anchor_to": "top_left",
+                            "layer": 3
+                          }
+                        },
+                        {
+                          "anim_0": {
+                            "type": "image",
+                            "texture": "textures/ui/guild_codex/anim_portal_core",
+                            "keep_ratio": false,
+                            "anchor_from": "top_left",
+                            "anchor_to": "top_left",
+                            "offset": [
+                              "4.735%",
+                              "57.239%"
+                            ],
+                            "size": [
+                              "12.879%",
+                              "19.192%"
+                            ],
+                            "uv_size": [
+                              272,
+                              228
+                            ],
+                            "uv": "@guild_codex.fb_portal_core",
+                            "disable_anim_fast_forward": true,
+                            "layer": 5
+                          }
+                        },
+                        {
+                          "anim_1": {
+                            "type": "image",
+                            "texture": "textures/ui/guild_codex/anim_forge_flame",
+                            "keep_ratio": false,
+                            "anchor_from": "top_left",
+                            "anchor_to": "top_left",
+                            "offset": [
+                              "25.473%",
+                              "19.697%"
+                            ],
+                            "size": [
+                              "15.152%",
+                              "12.795%"
+                            ],
+                            "uv_size": [
+                              320,
+                              152
+                            ],
+                            "uv": "@guild_codex.fb_forge_flame",
+                            "disable_anim_fast_forward": true,
+                            "layer": 5
+                          }
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stpanel_06": {
+                      "type": "panel",
+                      "size": [
+                        "100%",
+                        "56.25%x"
+                      ],
+                      "anchor_from": "top_left",
+                      "anchor_to": "top_left",
+                      "bindings": [
+                        {
+                          "binding_name": "#hover_text",
+                          "binding_type": "collection",
+                          "binding_collection_name": "container_items",
+                          "binding_condition": "always"
+                        },
+                        {
+                          "binding_type": "view",
+                          "source_property_name": "(not ((#hover_text - '§s§0§6') = #hover_text))",
+                          "target_property_name": "#visible"
+                        }
+                      ],
+                      "controls": [
+                        {
+                          "bg": {
+                            "type": "image",
+                            "texture": "textures/ui/guild_codex/s_06_ko_quests",
+                            "keep_ratio": false,
+                            "size": [
+                              "100%",
+                              "100%"
+                            ],
+                            "anchor_from": "top_left",
+                            "anchor_to": "top_left",
+                            "layer": 3
+                          }
+                        },
+                        {
+                          "anim_0": {
+                            "type": "image",
+                            "texture": "textures/ui/guild_codex/anim_portal_core",
+                            "keep_ratio": false,
+                            "anchor_from": "top_left",
+                            "anchor_to": "top_left",
+                            "offset": [
+                              "4.735%",
+                              "57.239%"
+                            ],
+                            "size": [
+                              "12.879%",
+                              "19.192%"
+                            ],
+                            "uv_size": [
+                              272,
+                              228
+                            ],
+                            "uv": "@guild_codex.fb_portal_core",
+                            "disable_anim_fast_forward": true,
+                            "layer": 5
+                          }
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stpanel_07": {
+                      "type": "panel",
+                      "size": [
+                        "100%",
+                        "56.25%x"
+                      ],
+                      "anchor_from": "top_left",
+                      "anchor_to": "top_left",
+                      "bindings": [
+                        {
+                          "binding_name": "#hover_text",
+                          "binding_type": "collection",
+                          "binding_collection_name": "container_items",
+                          "binding_condition": "always"
+                        },
+                        {
+                          "binding_type": "view",
+                          "source_property_name": "(not ((#hover_text - '§s§0§7') = #hover_text))",
+                          "target_property_name": "#visible"
+                        }
+                      ],
+                      "controls": [
+                        {
+                          "bg": {
+                            "type": "image",
+                            "texture": "textures/ui/guild_codex/s_07_ko_profile",
+                            "keep_ratio": false,
+                            "size": [
+                              "100%",
+                              "100%"
+                            ],
+                            "anchor_from": "top_left",
+                            "anchor_to": "top_left",
+                            "layer": 3
+                          }
+                        },
+                        {
+                          "anim_0": {
+                            "type": "image",
+                            "texture": "textures/ui/guild_codex/anim_portal_core",
+                            "keep_ratio": false,
+                            "anchor_from": "top_left",
+                            "anchor_to": "top_left",
+                            "offset": [
+                              "4.735%",
+                              "57.239%"
+                            ],
+                            "size": [
+                              "12.879%",
+                              "19.192%"
+                            ],
+                            "uv_size": [
+                              272,
+                              228
+                            ],
+                            "uv": "@guild_codex.fb_portal_core",
+                            "disable_anim_fast_forward": true,
+                            "layer": 5
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "slot_02": {
+                "type": "panel",
+                "size": [
+                  "100%",
+                  0
+                ],
+                "clips_children": false,
+                "collection_index": 2,
+                "controls": [
+                  {
+                    "hit_frame": {
+                      "type": "panel",
+                      "size": [
+                        "100%",
+                        "56.25%x"
+                      ],
+                      "anchor_from": "top_left",
+                      "anchor_to": "top_left",
+                      "controls": [
+                        {
+                          "ih_00@guild_codex.inv_hitbox_btn": {
+                            "$htag": "§h§0§0",
+                            "$hoff": [
+                              "82.102%",
+                              "4.714%"
+                            ],
+                            "$hsize": [
+                              "8.712%",
+                              "6.734%"
+                            ]
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "slot_03": {
+                "type": "panel",
+                "size": [
+                  "100%",
+                  0
+                ],
+                "clips_children": false,
+                "collection_index": 3,
+                "controls": [
+                  {
+                    "hit_frame": {
+                      "type": "panel",
+                      "size": [
+                        "100%",
+                        "56.25%x"
+                      ],
+                      "anchor_from": "top_left",
+                      "anchor_to": "top_left",
+                      "controls": [
+                        {
+                          "ih_00@guild_codex.inv_exit_btn": {
+                            "$htag": "§h§0§1",
+                            "$hoff": [
+                              "91.761%",
+                              "4.714%"
+                            ],
+                            "$hsize": [
+                              "5.303%",
+                              "6.734%"
+                            ]
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "slot_04": {
+                "type": "panel",
+                "size": [
+                  "100%",
+                  0
+                ],
+                "clips_children": false,
+                "collection_index": 4,
+                "controls": [
+                  {
+                    "hit_frame": {
+                      "type": "panel",
+                      "size": [
+                        "100%",
+                        "56.25%x"
+                      ],
+                      "anchor_from": "top_left",
+                      "anchor_to": "top_left",
+                      "controls": [
+                        {
+                          "ih_00@guild_codex.inv_hitbox_btn": {
+                            "$htag": "§h§0§2",
+                            "$hoff": [
+                              "2.936%",
+                              "18.35%"
+                            ],
+                            "$hsize": [
+                              "16.477%",
+                              "8.081%"
+                            ]
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "slot_05": {
+                "type": "panel",
+                "size": [
+                  "100%",
+                  0
+                ],
+                "clips_children": false,
+                "collection_index": 5,
+                "controls": [
+                  {
+                    "hit_frame": {
+                      "type": "panel",
+                      "size": [
+                        "100%",
+                        "56.25%x"
+                      ],
+                      "anchor_from": "top_left",
+                      "anchor_to": "top_left",
+                      "controls": [
+                        {
+                          "ih_00@guild_codex.inv_hitbox_btn": {
+                            "$htag": "§h§0§3",
+                            "$hoff": [
+                              "2.936%",
+                              "27.778%"
+                            ],
+                            "$hsize": [
+                              "16.477%",
+                              "8.081%"
+                            ]
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "slot_06": {
+                "type": "panel",
+                "size": [
+                  "100%",
+                  0
+                ],
+                "clips_children": false,
+                "collection_index": 6,
+                "controls": [
+                  {
+                    "hit_frame": {
+                      "type": "panel",
+                      "size": [
+                        "100%",
+                        "56.25%x"
+                      ],
+                      "anchor_from": "top_left",
+                      "anchor_to": "top_left",
+                      "controls": [
+                        {
+                          "ih_00@guild_codex.inv_hitbox_btn": {
+                            "$htag": "§h§0§4",
+                            "$hoff": [
+                              "2.936%",
+                              "37.205%"
+                            ],
+                            "$hsize": [
+                              "16.477%",
+                              "8.081%"
+                            ]
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "slot_07": {
+                "type": "panel",
+                "size": [
+                  "100%",
+                  0
+                ],
+                "clips_children": false,
+                "collection_index": 7,
+                "controls": [
+                  {
+                    "hit_frame": {
+                      "type": "panel",
+                      "size": [
+                        "100%",
+                        "56.25%x"
+                      ],
+                      "anchor_from": "top_left",
+                      "anchor_to": "top_left",
+                      "controls": [
+                        {
+                          "ih_00@guild_codex.inv_hitbox_btn": {
+                            "$htag": "§h§0§5",
+                            "$hoff": [
+                              "2.936%",
+                              "46.633%"
+                            ],
+                            "$hsize": [
+                              "16.477%",
+                              "8.081%"
+                            ]
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "slot_08": {
+                "type": "panel",
+                "size": [
+                  "100%",
+                  0
+                ],
+                "clips_children": false,
+                "collection_index": 8,
+                "controls": [
+                  {
+                    "hit_frame": {
+                      "type": "panel",
+                      "size": [
+                        "100%",
+                        "56.25%x"
+                      ],
+                      "anchor_from": "top_left",
+                      "anchor_to": "top_left",
+                      "controls": [
+                        {
+                          "ih_00@guild_codex.inv_hitbox_btn": {
+                            "$htag": "§h§0§6",
+                            "$hoff": [
+                              "23.958%",
+                              "36.195%"
+                            ],
+                            "$hsize": [
+                              "17.235%",
+                              "26.599%"
+                            ]
+                          }
+                        },
+                        {
+                          "ih_01@guild_codex.inv_hitbox_btn": {
+                            "$htag": "§h§1§2",
+                            "$hoff": [
+                              "76.42%",
+                              "21.38%"
+                            ],
+                            "$hsize": [
+                              "18.561%",
+                              "9.091%"
+                            ]
+                          }
+                        },
+                        {
+                          "ih_02@guild_codex.inv_hitbox_btn": {
+                            "$htag": "§h§1§9",
+                            "$hoff": [
+                              "74.716%",
+                              "20.034%"
+                            ],
+                            "$hsize": [
+                              "19.886%",
+                              "7.071%"
+                            ]
+                          }
+                        },
+                        {
+                          "ih_03@guild_codex.inv_hitbox_btn": {
+                            "$htag": "§h§2§3",
+                            "$hoff": [
+                              "23.958%",
+                              "40.572%"
+                            ],
+                            "$hsize": [
+                              "35.417%",
+                              "16.162%"
+                            ]
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "slot_09": {
+                "type": "panel",
+                "size": [
+                  "100%",
+                  0
+                ],
+                "clips_children": false,
+                "collection_index": 9,
+                "controls": [
+                  {
+                    "hit_frame": {
+                      "type": "panel",
+                      "size": [
+                        "100%",
+                        "56.25%x"
+                      ],
+                      "anchor_from": "top_left",
+                      "anchor_to": "top_left",
+                      "controls": [
+                        {
+                          "ih_00@guild_codex.inv_hitbox_btn": {
+                            "$htag": "§h§0§7",
+                            "$hoff": [
+                              "42.33%",
+                              "36.195%"
+                            ],
+                            "$hsize": [
+                              "17.235%",
+                              "26.599%"
+                            ]
+                          }
+                        },
+                        {
+                          "ih_01@guild_codex.inv_hitbox_btn": {
+                            "$htag": "§h§1§3",
+                            "$hoff": [
+                              "23.958%",
+                              "35.522%"
+                            ],
+                            "$hsize": [
+                              "23.295%",
+                              "19.529%"
+                            ]
+                          }
+                        },
+                        {
+                          "ih_02@guild_codex.inv_hitbox_btn": {
+                            "$htag": "§h§2§0",
+                            "$hoff": [
+                              "23.958%",
+                              "30.808%"
+                            ],
+                            "$hsize": [
+                              "72.348%",
+                              "14.141%"
+                            ]
+                          }
+                        },
+                        {
+                          "ih_03@guild_codex.inv_hitbox_btn": {
+                            "$htag": "§h§2§4",
+                            "$hoff": [
+                              "60.89%",
+                              "40.572%"
+                            ],
+                            "$hsize": [
+                              "35.417%",
+                              "16.162%"
+                            ]
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "slot_10": {
+                "type": "panel",
+                "size": [
+                  "100%",
+                  0
+                ],
+                "clips_children": false,
+                "collection_index": 10,
+                "controls": [
+                  {
+                    "hit_frame": {
+                      "type": "panel",
+                      "size": [
+                        "100%",
+                        "56.25%x"
+                      ],
+                      "anchor_from": "top_left",
+                      "anchor_to": "top_left",
+                      "controls": [
+                        {
+                          "ih_00@guild_codex.inv_hitbox_btn": {
+                            "$htag": "§h§0§8",
+                            "$hoff": [
+                              "60.701%",
+                              "36.195%"
+                            ],
+                            "$hsize": [
+                              "17.235%",
+                              "26.599%"
+                            ]
+                          }
+                        },
+                        {
+                          "ih_01@guild_codex.inv_hitbox_btn": {
+                            "$htag": "§h§1§4",
+                            "$hoff": [
+                              "48.39%",
+                              "35.522%"
+                            ],
+                            "$hsize": [
+                              "23.295%",
+                              "19.529%"
+                            ]
+                          }
+                        },
+                        {
+                          "ih_02@guild_codex.inv_hitbox_btn": {
+                            "$htag": "§h§2§1",
+                            "$hoff": [
+                              "23.958%",
+                              "46.633%"
+                            ],
+                            "$hsize": [
+                              "72.348%",
+                              "14.141%"
+                            ]
+                          }
+                        },
+                        {
+                          "ih_03@guild_codex.inv_hitbox_btn": {
+                            "$htag": "§h§2§5",
+                            "$hoff": [
+                              "23.958%",
+                              "59.428%"
+                            ],
+                            "$hsize": [
+                              "35.417%",
+                              "16.162%"
+                            ]
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "slot_11": {
+                "type": "panel",
+                "size": [
+                  "100%",
+                  0
+                ],
+                "clips_children": false,
+                "collection_index": 11,
+                "controls": [
+                  {
+                    "hit_frame": {
+                      "type": "panel",
+                      "size": [
+                        "100%",
+                        "56.25%x"
+                      ],
+                      "anchor_from": "top_left",
+                      "anchor_to": "top_left",
+                      "controls": [
+                        {
+                          "ih_00@guild_codex.inv_hitbox_btn": {
+                            "$htag": "§h§0§9",
+                            "$hoff": [
+                              "79.072%",
+                              "36.195%"
+                            ],
+                            "$hsize": [
+                              "17.235%",
+                              "26.599%"
+                            ]
+                          }
+                        },
+                        {
+                          "ih_01@guild_codex.inv_hitbox_btn": {
+                            "$htag": "§h§1§5",
+                            "$hoff": [
+                              "72.822%",
+                              "35.522%"
+                            ],
+                            "$hsize": [
+                              "23.295%",
+                              "19.529%"
+                            ]
+                          }
+                        },
+                        {
+                          "ih_02@guild_codex.inv_hitbox_btn": {
+                            "$htag": "§h§2§2",
+                            "$hoff": [
+                              "23.958%",
+                              "62.458%"
+                            ],
+                            "$hsize": [
+                              "72.348%",
+                              "14.141%"
+                            ]
+                          }
+                        },
+                        {
+                          "ih_03@guild_codex.inv_hitbox_btn": {
+                            "$htag": "§h§2§6",
+                            "$hoff": [
+                              "60.89%",
+                              "59.428%"
+                            ],
+                            "$hsize": [
+                              "35.417%",
+                              "16.162%"
+                            ]
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "slot_12": {
+                "type": "panel",
+                "size": [
+                  "100%",
+                  0
+                ],
+                "clips_children": false,
+                "collection_index": 12,
+                "controls": [
+                  {
+                    "hit_frame": {
+                      "type": "panel",
+                      "size": [
+                        "100%",
+                        "56.25%x"
+                      ],
+                      "anchor_from": "top_left",
+                      "anchor_to": "top_left",
+                      "controls": [
+                        {
+                          "ih_00@guild_codex.inv_hitbox_btn": {
+                            "$htag": "§h§1§0",
+                            "$hoff": [
+                              "23.958%",
+                              "65.152%"
+                            ],
+                            "$hsize": [
+                              "35.417%",
+                              "11.448%"
+                            ]
+                          }
+                        },
+                        {
+                          "ih_01@guild_codex.inv_hitbox_btn": {
+                            "$htag": "§h§1§6",
+                            "$hoff": [
+                              "23.958%",
+                              "57.071%"
+                            ],
+                            "$hsize": [
+                              "23.295%",
+                              "19.529%"
+                            ]
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "slot_13": {
+                "type": "panel",
+                "size": [
+                  "100%",
+                  0
+                ],
+                "clips_children": false,
+                "collection_index": 13,
+                "controls": [
+                  {
+                    "hit_frame": {
+                      "type": "panel",
+                      "size": [
+                        "100%",
+                        "56.25%x"
+                      ],
+                      "anchor_from": "top_left",
+                      "anchor_to": "top_left",
+                      "controls": [
+                        {
+                          "ih_00@guild_codex.inv_hitbox_btn": {
+                            "$htag": "§h§1§1",
+                            "$hoff": [
+                              "60.89%",
+                              "65.152%"
+                            ],
+                            "$hsize": [
+                              "35.417%",
+                              "11.448%"
+                            ]
+                          }
+                        },
+                        {
+                          "ih_01@guild_codex.inv_hitbox_btn": {
+                            "$htag": "§h§1§7",
+                            "$hoff": [
+                              "48.39%",
+                              "57.071%"
+                            ],
+                            "$hsize": [
+                              "23.295%",
+                              "19.529%"
+                            ]
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "slot_14": {
+                "type": "panel",
+                "size": [
+                  "100%",
+                  0
+                ],
+                "clips_children": false,
+                "collection_index": 14,
+                "controls": [
+                  {
+                    "hit_frame": {
+                      "type": "panel",
+                      "size": [
+                        "100%",
+                        "56.25%x"
+                      ],
+                      "anchor_from": "top_left",
+                      "anchor_to": "top_left",
+                      "controls": [
+                        {
+                          "ih_00@guild_codex.inv_hitbox_btn": {
+                            "$htag": "§h§1§8",
+                            "$hoff": [
+                              "72.822%",
+                              "57.071%"
+                            ],
+                            "$hsize": [
+                              "23.295%",
+                              "19.529%"
+                            ]
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "slot_23": {
+                "type": "panel",
+                "size": [
+                  "100%",
+                  0
+                ],
+                "clips_children": false,
+                "collection_index": 23,
+                "controls": [
+                  {
+                    "dyn_frame": {
+                      "type": "panel",
+                      "size": [
+                        "100%",
+                        "56.25%x"
+                      ],
+                      "anchor_from": "top_left",
+                      "anchor_to": "top_left",
+                      "controls": [
+                        {
+                          "mask_0": {
+                            "type": "image",
+                            "texture": "textures/ui/guild_codex/white_fill",
+                            "keep_ratio": false,
+                            "color": [
+                              0.059,
+                              0.078,
+                              0.125
+                            ],
+                            "anchor_from": "top_left",
+                            "anchor_to": "top_left",
+                            "offset": [
+                              "2.936%",
+                              "89.562%"
+                            ],
+                            "size": [
+                              "93.939%",
+                              "6.061%"
+                            ],
+                            "layer": 5,
+                            "bindings": [
+                              {
+                                "binding_name": "#hover_text",
+                                "binding_type": "collection",
+                                "binding_collection_name": "container_items",
+                                "binding_condition": "always"
+                              },
+                              {
+                                "binding_type": "view",
+                                "source_property_name": "(not ((#hover_text - '§9§0') = #hover_text))",
+                                "target_property_name": "#visible"
+                              }
+                            ]
+                          }
+                        },
+                        {
+                          "dyn_label": {
+                            "type": "label",
+                            "text": "#hover_text",
+                            "color": [
+                              1,
+                              1,
+                              1
+                            ],
+                            "font_type": "smooth",
+                            "font_size": "normal",
+                            "font_scale_factor": 0.9,
+                            "shadow": false,
+                            "localize": false,
+                            "text_alignment": "left",
+                            "anchor_from": "top_left",
+                            "anchor_to": "top_left",
+                            "offset": [
+                              "3.125%",
+                              "89.731%"
+                            ],
+                            "size": [
+                              "93.561%",
+                              "5.724%"
+                            ],
+                            "layer": 6,
+                            "bindings": [
+                              {
+                                "binding_name": "#hover_text",
+                                "binding_type": "collection",
+                                "binding_collection_name": "container_items",
+                                "binding_condition": "always"
+                              },
+                              {
+                                "binding_type": "view",
+                                "source_property_name": "(not ((#hover_text - '§r') = #hover_text))",
+                                "target_property_name": "#visible"
+                              }
+                            ]
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "slot_24": {
+                "type": "panel",
+                "size": [
+                  "100%",
+                  0
+                ],
+                "clips_children": false,
+                "collection_index": 24,
+                "controls": [
+                  {
+                    "dyn_frame": {
+                      "type": "panel",
+                      "size": [
+                        "100%",
+                        "56.25%x"
+                      ],
+                      "anchor_from": "top_left",
+                      "anchor_to": "top_left",
+                      "controls": [
+                        {
+                          "mask_0": {
+                            "type": "image",
+                            "texture": "textures/ui/guild_codex/white_fill",
+                            "keep_ratio": false,
+                            "color": [
+                              0.059,
+                              0.078,
+                              0.125
+                            ],
+                            "anchor_from": "top_left",
+                            "anchor_to": "top_left",
+                            "offset": [
+                              "2.936%",
+                              "83.165%"
+                            ],
+                            "size": [
+                              "93.939%",
+                              "6.061%"
+                            ],
+                            "layer": 5,
+                            "bindings": [
+                              {
+                                "binding_name": "#hover_text",
+                                "binding_type": "collection",
+                                "binding_collection_name": "container_items",
+                                "binding_condition": "always"
+                              },
+                              {
+                                "binding_type": "view",
+                                "source_property_name": "(not ((#hover_text - '§9§0') = #hover_text))",
+                                "target_property_name": "#visible"
+                              }
+                            ]
+                          }
+                        },
+                        {
+                          "dyn_label": {
+                            "type": "label",
+                            "text": "#hover_text",
+                            "color": [
+                              1,
+                              1,
+                              1
+                            ],
+                            "font_type": "smooth",
+                            "font_size": "normal",
+                            "font_scale_factor": 0.95,
+                            "shadow": false,
+                            "localize": false,
+                            "text_alignment": "left",
+                            "anchor_from": "top_left",
+                            "anchor_to": "top_left",
+                            "offset": [
+                              "3.125%",
+                              "83.333%"
+                            ],
+                            "size": [
+                              "93.561%",
+                              "5.724%"
+                            ],
+                            "layer": 6,
+                            "bindings": [
+                              {
+                                "binding_name": "#hover_text",
+                                "binding_type": "collection",
+                                "binding_collection_name": "container_items",
+                                "binding_condition": "always"
+                              },
+                              {
+                                "binding_type": "view",
+                                "source_property_name": "(not ((#hover_text - '§r') = #hover_text))",
+                                "target_property_name": "#visible"
+                              }
+                            ]
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "slot_25": {
+                "type": "panel",
+                "size": [
+                  "100%",
+                  0
+                ],
+                "clips_children": false,
+                "collection_index": 25,
+                "controls": [
+                  {
+                    "dyn_frame": {
+                      "type": "panel",
+                      "size": [
+                        "100%",
+                        "56.25%x"
+                      ],
+                      "anchor_from": "top_left",
+                      "anchor_to": "top_left",
+                      "controls": [
+                        {
+                          "mask_0": {
+                            "type": "image",
+                            "texture": "textures/ui/guild_codex/white_fill",
+                            "keep_ratio": false,
+                            "color": [
+                              0.067,
+                              0.086,
+                              0.133
+                            ],
+                            "anchor_from": "top_left",
+                            "anchor_to": "top_left",
+                            "offset": [
+                              "70.833%",
+                              "5.051%"
+                            ],
+                            "size": [
+                              "10.038%",
+                              "6.061%"
+                            ],
+                            "layer": 5,
+                            "bindings": [
+                              {
+                                "binding_name": "#hover_text",
+                                "binding_type": "collection",
+                                "binding_collection_name": "container_items",
+                                "binding_condition": "always"
+                              },
+                              {
+                                "binding_type": "view",
+                                "source_property_name": "(not ((#hover_text - '§9§0') = #hover_text))",
+                                "target_property_name": "#visible"
+                              }
+                            ]
+                          }
+                        },
+                        {
+                          "dyn_label": {
+                            "type": "label",
+                            "text": "#hover_text",
+                            "color": [
+                              1,
+                              1,
+                              1
+                            ],
+                            "font_type": "smooth",
+                            "font_size": "normal",
+                            "font_scale_factor": 0.95,
+                            "shadow": false,
+                            "localize": false,
+                            "text_alignment": "left",
+                            "anchor_from": "top_left",
+                            "anchor_to": "top_left",
+                            "offset": [
+                              "71.023%",
+                              "5.219%"
+                            ],
+                            "size": [
+                              "9.659%",
+                              "5.724%"
+                            ],
+                            "layer": 6,
+                            "bindings": [
+                              {
+                                "binding_name": "#hover_text",
+                                "binding_type": "collection",
+                                "binding_collection_name": "container_items",
+                                "binding_condition": "always"
+                              },
+                              {
+                                "binding_type": "view",
+                                "source_property_name": "(not ((#hover_text - '§r') = #hover_text))",
+                                "target_property_name": "#visible"
+                              }
+                            ]
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "slot_26": {
+                "type": "panel",
+                "size": [
+                  "100%",
+                  0
+                ],
+                "clips_children": false,
+                "collection_index": 26,
+                "controls": [
+                  {
+                    "dyn_frame": {
+                      "type": "panel",
+                      "size": [
+                        "100%",
+                        "56.25%x"
+                      ],
+                      "anchor_from": "top_left",
+                      "anchor_to": "top_left",
+                      "controls": [
+                        {
+                          "mask_0": {
+                            "type": "image",
+                            "texture": "textures/ui/guild_codex/white_fill",
+                            "keep_ratio": false,
+                            "color": [
+                              0.067,
+                              0.086,
+                              0.133
+                            ],
+                            "anchor_from": "top_left",
+                            "anchor_to": "top_left",
+                            "offset": [
+                              "54.924%",
+                              "5.051%"
+                            ],
+                            "size": [
+                              "11.364%",
+                              "6.061%"
+                            ],
+                            "layer": 5,
+                            "bindings": [
+                              {
+                                "binding_name": "#hover_text",
+                                "binding_type": "collection",
+                                "binding_collection_name": "container_items",
+                                "binding_condition": "always"
+                              },
+                              {
+                                "binding_type": "view",
+                                "source_property_name": "(not ((#hover_text - '§9§0') = #hover_text))",
+                                "target_property_name": "#visible"
+                              }
+                            ]
+                          }
+                        },
+                        {
+                          "dyn_label": {
+                            "type": "label",
+                            "text": "#hover_text",
+                            "color": [
+                              1,
+                              1,
+                              1
+                            ],
+                            "font_type": "smooth",
+                            "font_size": "normal",
+                            "font_scale_factor": 0.95,
+                            "shadow": false,
+                            "localize": false,
+                            "text_alignment": "left",
+                            "anchor_from": "top_left",
+                            "anchor_to": "top_left",
+                            "offset": [
+                              "55.114%",
+                              "5.219%"
+                            ],
+                            "size": [
+                              "10.985%",
+                              "5.724%"
+                            ],
+                            "layer": 6,
+                            "bindings": [
+                              {
+                                "binding_name": "#hover_text",
+                                "binding_type": "collection",
+                                "binding_collection_name": "container_items",
+                                "binding_condition": "always"
+                              },
+                              {
+                                "binding_type": "view",
+                                "source_property_name": "(not ((#hover_text - '§r') = #hover_text))",
+                                "target_property_name": "#visible"
+                              }
+                            ]
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "inv_overlay": {
+    "type": "panel",
+    "size": [
+      "100%",
+      "100%"
+    ],
+    "layer": 1,
+    "$bui_title": "$container_title",
+    "controls": [
+      {
+        "host": {
+          "type": "panel",
+          "size": [
+            "100%",
+            "100%"
+          ],
+          "ignored": "(not ($bui_title = '§b§w§n§h'))",
+          "controls": [
+            {
+              "entity_ui_hide_vanilla": {
+                "type": "panel",
+                "size": [
+                  0,
+                  0
+                ],
+                "property_bag": {
+                  "#entity_ui_vanilla_visible": false
+                }
+              }
+            },
+            {
+              "cover": {
+                "type": "panel",
+                "size": [
+                  "100%",
+                  "100%"
+                ],
+                "layer": 1,
+                "controls": [
+                  {
+                    "screen_bg": {
+                      "type": "image",
+                      "texture": "textures/ui/guild_codex/screen_fill",
+                      "keep_ratio": false,
+                      "size": [
+                        "100%",
+                        "100%"
+                      ],
+                      "layer": 0
+                    }
+                  },
+                  {
+                    "sync_grid": {
+                      "type": "grid",
+                      "size": [
+                        162,
+                        54
+                      ],
+                      "layer": 1,
+                      "grid_rescaling_type": "horizontal",
+                      "maximum_grid_items": 27,
+                      "collection_name": "container_items",
+                      "grid_item_template": "guild_codex.empty_cell"
+                    }
+                  },
+                  {
+                    "window@guild_codex.inv_window": {
+                      "layer": 2
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "hitbox_btn@common.button": {
+    "anchor_from": "top_left",
+    "anchor_to": "top_left",
+    "offset": "$hoff",
+    "size": "$hsize",
+    "layer": 12,
+    "$pressed_button_name": "button.form_button_click",
+    "$border_visible": false,
+    "default_control": "default",
+    "hover_control": "hover",
+    "pressed_control": "pressed",
+    "controls": [
+      {
+        "default": {
+          "type": "image",
+          "texture": "textures/ui/guild_codex/hit_idle",
+          "size": [
+            "100%",
+            "100%"
+          ],
+          "layer": 12
+        }
+      },
+      {
+        "hover": {
+          "type": "image",
+          "texture": "textures/ui/guild_codex/hit_hover",
+          "size": [
+            "100%",
+            "100%"
+          ],
+          "layer": 13
+        }
+      },
+      {
+        "pressed": {
+          "type": "image",
+          "texture": "textures/ui/guild_codex/hit_press",
+          "size": [
+            "100%",
+            "100%"
+          ],
+          "layer": 13
+        }
+      }
+    ],
+    "bindings": [
+      {
+        "binding_name": "#null",
+        "binding_type": "collection",
+        "binding_condition": "none",
+        "binding_collection_name": "form_buttons"
+      },
+      {
+        "binding_name": "#null",
+        "binding_type": "collection_details",
+        "binding_collection_name": "form_buttons"
+      },
+      {
+        "binding_name": "#form_button_text",
+        "binding_type": "collection",
+        "binding_collection_name": "form_buttons"
+      },
+      {
+        "binding_type": "view",
+        "source_property_name": "(not ((#form_button_text - $htag) = #form_button_text))",
+        "target_property_name": "#visible"
+      }
+    ]
+  },
+  "hit_slot": {
+    "type": "panel",
+    "size": [
+      "100%",
+      0
+    ],
+    "anchor_from": "top_left",
+    "anchor_to": "top_left",
+    "clips_children": false,
+    "controls": [
+      {
+        "hit_frame": {
+          "type": "panel",
+          "size": [
+            "100%",
+            "56.25%x"
+          ],
+          "anchor_from": "top_left",
+          "anchor_to": "top_left",
+          "controls": [
+            {
+              "hb_00@guild_codex.hitbox_btn": {
+                "$htag": "§h§0§0",
+                "$hoff": [
+                  "82.102%",
+                  "4.714%"
+                ],
+                "$hsize": [
+                  "8.712%",
+                  "6.734%"
+                ]
+              }
+            },
+            {
+              "hb_01@guild_codex.hitbox_btn": {
+                "$htag": "§h§0§1",
+                "$hoff": [
+                  "91.761%",
+                  "4.714%"
+                ],
+                "$hsize": [
+                  "5.303%",
+                  "6.734%"
+                ]
+              }
+            },
+            {
+              "hb_02@guild_codex.hitbox_btn": {
+                "$htag": "§h§0§2",
+                "$hoff": [
+                  "2.936%",
+                  "18.35%"
+                ],
+                "$hsize": [
+                  "16.477%",
+                  "8.081%"
+                ]
+              }
+            },
+            {
+              "hb_03@guild_codex.hitbox_btn": {
+                "$htag": "§h§0§3",
+                "$hoff": [
+                  "2.936%",
+                  "27.778%"
+                ],
+                "$hsize": [
+                  "16.477%",
+                  "8.081%"
+                ]
+              }
+            },
+            {
+              "hb_04@guild_codex.hitbox_btn": {
+                "$htag": "§h§0§4",
+                "$hoff": [
+                  "2.936%",
+                  "37.205%"
+                ],
+                "$hsize": [
+                  "16.477%",
+                  "8.081%"
+                ]
+              }
+            },
+            {
+              "hb_05@guild_codex.hitbox_btn": {
+                "$htag": "§h§0§5",
+                "$hoff": [
+                  "2.936%",
+                  "46.633%"
+                ],
+                "$hsize": [
+                  "16.477%",
+                  "8.081%"
+                ]
+              }
+            },
+            {
+              "hb_06@guild_codex.hitbox_btn": {
+                "$htag": "§h§0§6",
+                "$hoff": [
+                  "23.958%",
+                  "36.195%"
+                ],
+                "$hsize": [
+                  "17.235%",
+                  "26.599%"
+                ]
+              }
+            },
+            {
+              "hb_07@guild_codex.hitbox_btn": {
+                "$htag": "§h§0§7",
+                "$hoff": [
+                  "42.33%",
+                  "36.195%"
+                ],
+                "$hsize": [
+                  "17.235%",
+                  "26.599%"
+                ]
+              }
+            },
+            {
+              "hb_08@guild_codex.hitbox_btn": {
+                "$htag": "§h§0§8",
+                "$hoff": [
+                  "60.701%",
+                  "36.195%"
+                ],
+                "$hsize": [
+                  "17.235%",
+                  "26.599%"
+                ]
+              }
+            },
+            {
+              "hb_09@guild_codex.hitbox_btn": {
+                "$htag": "§h§0§9",
+                "$hoff": [
+                  "79.072%",
+                  "36.195%"
+                ],
+                "$hsize": [
+                  "17.235%",
+                  "26.599%"
+                ]
+              }
+            },
+            {
+              "hb_10@guild_codex.hitbox_btn": {
+                "$htag": "§h§1§0",
+                "$hoff": [
+                  "23.958%",
+                  "65.152%"
+                ],
+                "$hsize": [
+                  "35.417%",
+                  "11.448%"
+                ]
+              }
+            },
+            {
+              "hb_11@guild_codex.hitbox_btn": {
+                "$htag": "§h§1§1",
+                "$hoff": [
+                  "60.89%",
+                  "65.152%"
+                ],
+                "$hsize": [
+                  "35.417%",
+                  "11.448%"
+                ]
+              }
+            },
+            {
+              "hb_12@guild_codex.hitbox_btn": {
+                "$htag": "§h§1§2",
+                "$hoff": [
+                  "76.42%",
+                  "21.38%"
+                ],
+                "$hsize": [
+                  "18.561%",
+                  "9.091%"
+                ]
+              }
+            },
+            {
+              "hb_13@guild_codex.hitbox_btn": {
+                "$htag": "§h§1§3",
+                "$hoff": [
+                  "23.958%",
+                  "35.522%"
+                ],
+                "$hsize": [
+                  "23.295%",
+                  "19.529%"
+                ]
+              }
+            },
+            {
+              "hb_14@guild_codex.hitbox_btn": {
+                "$htag": "§h§1§4",
+                "$hoff": [
+                  "48.39%",
+                  "35.522%"
+                ],
+                "$hsize": [
+                  "23.295%",
+                  "19.529%"
+                ]
+              }
+            },
+            {
+              "hb_15@guild_codex.hitbox_btn": {
+                "$htag": "§h§1§5",
+                "$hoff": [
+                  "72.822%",
+                  "35.522%"
+                ],
+                "$hsize": [
+                  "23.295%",
+                  "19.529%"
+                ]
+              }
+            },
+            {
+              "hb_16@guild_codex.hitbox_btn": {
+                "$htag": "§h§1§6",
+                "$hoff": [
+                  "23.958%",
+                  "57.071%"
+                ],
+                "$hsize": [
+                  "23.295%",
+                  "19.529%"
+                ]
+              }
+            },
+            {
+              "hb_17@guild_codex.hitbox_btn": {
+                "$htag": "§h§1§7",
+                "$hoff": [
+                  "48.39%",
+                  "57.071%"
+                ],
+                "$hsize": [
+                  "23.295%",
+                  "19.529%"
+                ]
+              }
+            },
+            {
+              "hb_18@guild_codex.hitbox_btn": {
+                "$htag": "§h§1§8",
+                "$hoff": [
+                  "72.822%",
+                  "57.071%"
+                ],
+                "$hsize": [
+                  "23.295%",
+                  "19.529%"
+                ]
+              }
+            },
+            {
+              "hb_19@guild_codex.hitbox_btn": {
+                "$htag": "§h§1§9",
+                "$hoff": [
+                  "74.716%",
+                  "20.034%"
+                ],
+                "$hsize": [
+                  "19.886%",
+                  "7.071%"
+                ]
+              }
+            },
+            {
+              "hb_20@guild_codex.hitbox_btn": {
+                "$htag": "§h§2§0",
+                "$hoff": [
+                  "23.958%",
+                  "30.808%"
+                ],
+                "$hsize": [
+                  "72.348%",
+                  "14.141%"
+                ]
+              }
+            },
+            {
+              "hb_21@guild_codex.hitbox_btn": {
+                "$htag": "§h§2§1",
+                "$hoff": [
+                  "23.958%",
+                  "46.633%"
+                ],
+                "$hsize": [
+                  "72.348%",
+                  "14.141%"
+                ]
+              }
+            },
+            {
+              "hb_22@guild_codex.hitbox_btn": {
+                "$htag": "§h§2§2",
+                "$hoff": [
+                  "23.958%",
+                  "62.458%"
+                ],
+                "$hsize": [
+                  "72.348%",
+                  "14.141%"
+                ]
+              }
+            },
+            {
+              "hb_23@guild_codex.hitbox_btn": {
+                "$htag": "§h§2§3",
+                "$hoff": [
+                  "23.958%",
+                  "40.572%"
+                ],
+                "$hsize": [
+                  "35.417%",
+                  "16.162%"
+                ]
+              }
+            },
+            {
+              "hb_24@guild_codex.hitbox_btn": {
+                "$htag": "§h§2§4",
+                "$hoff": [
+                  "60.89%",
+                  "40.572%"
+                ],
+                "$hsize": [
+                  "35.417%",
+                  "16.162%"
+                ]
+              }
+            },
+            {
+              "hb_25@guild_codex.hitbox_btn": {
+                "$htag": "§h§2§5",
+                "$hoff": [
+                  "23.958%",
+                  "59.428%"
+                ],
+                "$hsize": [
+                  "35.417%",
+                  "16.162%"
+                ]
+              }
+            },
+            {
+              "hb_26@guild_codex.hitbox_btn": {
+                "$htag": "§h§2§6",
+                "$hoff": [
+                  "60.89%",
+                  "59.428%"
+                ],
+                "$hsize": [
+                  "35.417%",
+                  "16.162%"
+                ]
+              }
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "hitboxes_layer": {
+    "type": "stack_panel",
+    "orientation": "vertical",
+    "anchor_from": "top_left",
+    "anchor_to": "top_left",
+    "size": [
+      "100%",
+      "100%"
+    ],
+    "clips_children": false,
+    "layer": 10,
+    "collection_name": "form_buttons",
+    "factory": {
+      "name": "buttons",
+      "control_ids": {
+        "button": "guild_codex.hit_slot"
+      }
+    },
+    "bindings": [
+      {
+        "binding_name": "#form_button_contents",
+        "binding_name_override": "#collection_length"
+      }
+    ]
+  },
+  "browser_window": {
+    "type": "panel",
+    "size": [
+      "100%",
+      "56.25%x"
+    ],
+    "anchor_from": "center",
+    "anchor_to": "center",
+    "layer": 5,
+    "bindings": [
+      {
+        "binding_name": "#title_text",
+        "binding_type": "global"
+      },
+      {
+        "binding_type": "view",
+        "source_property_name": "(not ((#title_text - '§w§b') = #title_text))",
+        "target_property_name": "#visible"
+      }
+    ],
+    "controls": [
+      {
+        "backdrop": {
+          "type": "image",
+          "texture": "textures/ui/guild_codex/screen_fill",
+          "keep_ratio": false,
+          "size": [
+            "100%",
+            "100%"
+          ],
+          "layer": 1
+        }
+      },
+      {
+        "fpanel_00": {
+          "type": "panel",
+          "size": [
+            "100%",
+            "100%"
+          ],
+          "anchor_from": "top_left",
+          "anchor_to": "top_left",
+          "bindings": [
+            {
+              "binding_name": "#title_text",
+              "binding_type": "global"
+            },
+            {
+              "binding_type": "view",
+              "source_property_name": "(not ((#title_text - '§s§0§0') = #title_text))",
+              "target_property_name": "#visible"
+            }
+          ],
+          "controls": [
+            {
+              "bg": {
+                "type": "image",
+                "texture": "textures/ui/guild_codex/s_00_en_home",
+                "keep_ratio": false,
+                "size": [
+                  "100%",
+                  "100%"
+                ],
+                "anchor_from": "top_left",
+                "anchor_to": "top_left",
+                "layer": 3
+              }
+            },
+            {
+              "anim_0": {
+                "type": "image",
+                "texture": "textures/ui/guild_codex/anim_portal_core",
+                "keep_ratio": false,
+                "anchor_from": "top_left",
+                "anchor_to": "top_left",
+                "offset": [
+                  "4.735%",
+                  "57.239%"
+                ],
+                "size": [
+                  "12.879%",
+                  "19.192%"
+                ],
+                "uv_size": [
+                  272,
+                  228
+                ],
+                "uv": "@guild_codex.fb_portal_core",
+                "disable_anim_fast_forward": true,
+                "layer": 5
+              }
+            }
+          ]
+        }
+      },
+      {
+        "fpanel_01": {
+          "type": "panel",
+          "size": [
+            "100%",
+            "100%"
+          ],
+          "anchor_from": "top_left",
+          "anchor_to": "top_left",
+          "bindings": [
+            {
+              "binding_name": "#title_text",
+              "binding_type": "global"
+            },
+            {
+              "binding_type": "view",
+              "source_property_name": "(not ((#title_text - '§s§0§1') = #title_text))",
+              "target_property_name": "#visible"
+            }
+          ],
+          "controls": [
+            {
+              "bg": {
+                "type": "image",
+                "texture": "textures/ui/guild_codex/s_01_ko_home",
+                "keep_ratio": false,
+                "size": [
+                  "100%",
+                  "100%"
+                ],
+                "anchor_from": "top_left",
+                "anchor_to": "top_left",
+                "layer": 3
+              }
+            },
+            {
+              "anim_0": {
+                "type": "image",
+                "texture": "textures/ui/guild_codex/anim_portal_core",
+                "keep_ratio": false,
+                "anchor_from": "top_left",
+                "anchor_to": "top_left",
+                "offset": [
+                  "4.735%",
+                  "57.239%"
+                ],
+                "size": [
+                  "12.879%",
+                  "19.192%"
+                ],
+                "uv_size": [
+                  272,
+                  228
+                ],
+                "uv": "@guild_codex.fb_portal_core",
+                "disable_anim_fast_forward": true,
+                "layer": 5
+              }
+            }
+          ]
+        }
+      },
+      {
+        "fpanel_02": {
+          "type": "panel",
+          "size": [
+            "100%",
+            "100%"
+          ],
+          "anchor_from": "top_left",
+          "anchor_to": "top_left",
+          "bindings": [
+            {
+              "binding_name": "#title_text",
+              "binding_type": "global"
+            },
+            {
+              "binding_type": "view",
+              "source_property_name": "(not ((#title_text - '§s§0§2') = #title_text))",
+              "target_property_name": "#visible"
+            }
+          ],
+          "controls": [
+            {
+              "bg": {
+                "type": "image",
+                "texture": "textures/ui/guild_codex/s_02_en_shop",
+                "keep_ratio": false,
+                "size": [
+                  "100%",
+                  "100%"
+                ],
+                "anchor_from": "top_left",
+                "anchor_to": "top_left",
+                "layer": 3
+              }
+            },
+            {
+              "anim_0": {
+                "type": "image",
+                "texture": "textures/ui/guild_codex/anim_portal_core",
+                "keep_ratio": false,
+                "anchor_from": "top_left",
+                "anchor_to": "top_left",
+                "offset": [
+                  "4.735%",
+                  "57.239%"
+                ],
+                "size": [
+                  "12.879%",
+                  "19.192%"
+                ],
+                "uv_size": [
+                  272,
+                  228
+                ],
+                "uv": "@guild_codex.fb_portal_core",
+                "disable_anim_fast_forward": true,
+                "layer": 5
+              }
+            },
+            {
+              "anim_1": {
+                "type": "image",
+                "texture": "textures/ui/guild_codex/anim_forge_flame",
+                "keep_ratio": false,
+                "anchor_from": "top_left",
+                "anchor_to": "top_left",
+                "offset": [
+                  "25.473%",
+                  "19.697%"
+                ],
+                "size": [
+                  "15.152%",
+                  "12.795%"
+                ],
+                "uv_size": [
+                  320,
+                  152
+                ],
+                "uv": "@guild_codex.fb_forge_flame",
+                "disable_anim_fast_forward": true,
+                "layer": 5
+              }
+            }
+          ]
+        }
+      },
+      {
+        "fpanel_03": {
+          "type": "panel",
+          "size": [
+            "100%",
+            "100%"
+          ],
+          "anchor_from": "top_left",
+          "anchor_to": "top_left",
+          "bindings": [
+            {
+              "binding_name": "#title_text",
+              "binding_type": "global"
+            },
+            {
+              "binding_type": "view",
+              "source_property_name": "(not ((#title_text - '§s§0§3') = #title_text))",
+              "target_property_name": "#visible"
+            }
+          ],
+          "controls": [
+            {
+              "bg": {
+                "type": "image",
+                "texture": "textures/ui/guild_codex/s_03_en_quests",
+                "keep_ratio": false,
+                "size": [
+                  "100%",
+                  "100%"
+                ],
+                "anchor_from": "top_left",
+                "anchor_to": "top_left",
+                "layer": 3
+              }
+            },
+            {
+              "anim_0": {
+                "type": "image",
+                "texture": "textures/ui/guild_codex/anim_portal_core",
+                "keep_ratio": false,
+                "anchor_from": "top_left",
+                "anchor_to": "top_left",
+                "offset": [
+                  "4.735%",
+                  "57.239%"
+                ],
+                "size": [
+                  "12.879%",
+                  "19.192%"
+                ],
+                "uv_size": [
+                  272,
+                  228
+                ],
+                "uv": "@guild_codex.fb_portal_core",
+                "disable_anim_fast_forward": true,
+                "layer": 5
+              }
+            }
+          ]
+        }
+      },
+      {
+        "fpanel_04": {
+          "type": "panel",
+          "size": [
+            "100%",
+            "100%"
+          ],
+          "anchor_from": "top_left",
+          "anchor_to": "top_left",
+          "bindings": [
+            {
+              "binding_name": "#title_text",
+              "binding_type": "global"
+            },
+            {
+              "binding_type": "view",
+              "source_property_name": "(not ((#title_text - '§s§0§4') = #title_text))",
+              "target_property_name": "#visible"
+            }
+          ],
+          "controls": [
+            {
+              "bg": {
+                "type": "image",
+                "texture": "textures/ui/guild_codex/s_04_en_profile",
+                "keep_ratio": false,
+                "size": [
+                  "100%",
+                  "100%"
+                ],
+                "anchor_from": "top_left",
+                "anchor_to": "top_left",
+                "layer": 3
+              }
+            },
+            {
+              "anim_0": {
+                "type": "image",
+                "texture": "textures/ui/guild_codex/anim_portal_core",
+                "keep_ratio": false,
+                "anchor_from": "top_left",
+                "anchor_to": "top_left",
+                "offset": [
+                  "4.735%",
+                  "57.239%"
+                ],
+                "size": [
+                  "12.879%",
+                  "19.192%"
+                ],
+                "uv_size": [
+                  272,
+                  228
+                ],
+                "uv": "@guild_codex.fb_portal_core",
+                "disable_anim_fast_forward": true,
+                "layer": 5
+              }
+            }
+          ]
+        }
+      },
+      {
+        "fpanel_05": {
+          "type": "panel",
+          "size": [
+            "100%",
+            "100%"
+          ],
+          "anchor_from": "top_left",
+          "anchor_to": "top_left",
+          "bindings": [
+            {
+              "binding_name": "#title_text",
+              "binding_type": "global"
+            },
+            {
+              "binding_type": "view",
+              "source_property_name": "(not ((#title_text - '§s§0§5') = #title_text))",
+              "target_property_name": "#visible"
+            }
+          ],
+          "controls": [
+            {
+              "bg": {
+                "type": "image",
+                "texture": "textures/ui/guild_codex/s_05_ko_shop",
+                "keep_ratio": false,
+                "size": [
+                  "100%",
+                  "100%"
+                ],
+                "anchor_from": "top_left",
+                "anchor_to": "top_left",
+                "layer": 3
+              }
+            },
+            {
+              "anim_0": {
+                "type": "image",
+                "texture": "textures/ui/guild_codex/anim_portal_core",
+                "keep_ratio": false,
+                "anchor_from": "top_left",
+                "anchor_to": "top_left",
+                "offset": [
+                  "4.735%",
+                  "57.239%"
+                ],
+                "size": [
+                  "12.879%",
+                  "19.192%"
+                ],
+                "uv_size": [
+                  272,
+                  228
+                ],
+                "uv": "@guild_codex.fb_portal_core",
+                "disable_anim_fast_forward": true,
+                "layer": 5
+              }
+            },
+            {
+              "anim_1": {
+                "type": "image",
+                "texture": "textures/ui/guild_codex/anim_forge_flame",
+                "keep_ratio": false,
+                "anchor_from": "top_left",
+                "anchor_to": "top_left",
+                "offset": [
+                  "25.473%",
+                  "19.697%"
+                ],
+                "size": [
+                  "15.152%",
+                  "12.795%"
+                ],
+                "uv_size": [
+                  320,
+                  152
+                ],
+                "uv": "@guild_codex.fb_forge_flame",
+                "disable_anim_fast_forward": true,
+                "layer": 5
+              }
+            }
+          ]
+        }
+      },
+      {
+        "fpanel_06": {
+          "type": "panel",
+          "size": [
+            "100%",
+            "100%"
+          ],
+          "anchor_from": "top_left",
+          "anchor_to": "top_left",
+          "bindings": [
+            {
+              "binding_name": "#title_text",
+              "binding_type": "global"
+            },
+            {
+              "binding_type": "view",
+              "source_property_name": "(not ((#title_text - '§s§0§6') = #title_text))",
+              "target_property_name": "#visible"
+            }
+          ],
+          "controls": [
+            {
+              "bg": {
+                "type": "image",
+                "texture": "textures/ui/guild_codex/s_06_ko_quests",
+                "keep_ratio": false,
+                "size": [
+                  "100%",
+                  "100%"
+                ],
+                "anchor_from": "top_left",
+                "anchor_to": "top_left",
+                "layer": 3
+              }
+            },
+            {
+              "anim_0": {
+                "type": "image",
+                "texture": "textures/ui/guild_codex/anim_portal_core",
+                "keep_ratio": false,
+                "anchor_from": "top_left",
+                "anchor_to": "top_left",
+                "offset": [
+                  "4.735%",
+                  "57.239%"
+                ],
+                "size": [
+                  "12.879%",
+                  "19.192%"
+                ],
+                "uv_size": [
+                  272,
+                  228
+                ],
+                "uv": "@guild_codex.fb_portal_core",
+                "disable_anim_fast_forward": true,
+                "layer": 5
+              }
+            }
+          ]
+        }
+      },
+      {
+        "fpanel_07": {
+          "type": "panel",
+          "size": [
+            "100%",
+            "100%"
+          ],
+          "anchor_from": "top_left",
+          "anchor_to": "top_left",
+          "bindings": [
+            {
+              "binding_name": "#title_text",
+              "binding_type": "global"
+            },
+            {
+              "binding_type": "view",
+              "source_property_name": "(not ((#title_text - '§s§0§7') = #title_text))",
+              "target_property_name": "#visible"
+            }
+          ],
+          "controls": [
+            {
+              "bg": {
+                "type": "image",
+                "texture": "textures/ui/guild_codex/s_07_ko_profile",
+                "keep_ratio": false,
+                "size": [
+                  "100%",
+                  "100%"
+                ],
+                "anchor_from": "top_left",
+                "anchor_to": "top_left",
+                "layer": 3
+              }
+            },
+            {
+              "anim_0": {
+                "type": "image",
+                "texture": "textures/ui/guild_codex/anim_portal_core",
+                "keep_ratio": false,
+                "anchor_from": "top_left",
+                "anchor_to": "top_left",
+                "offset": [
+                  "4.735%",
+                  "57.239%"
+                ],
+                "size": [
+                  "12.879%",
+                  "19.192%"
+                ],
+                "uv_size": [
+                  272,
+                  228
+                ],
+                "uv": "@guild_codex.fb_portal_core",
+                "disable_anim_fast_forward": true,
+                "layer": 5
+              }
+            }
+          ]
+        }
+      },
+      {
+        "hitboxes@guild_codex.hitboxes_layer": {}
+      }
+    ]
+  }
+}
