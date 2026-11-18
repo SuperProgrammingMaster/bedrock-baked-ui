@@ -4,7 +4,7 @@
     "name": "Aetherium Guild Codex (BP Example)",
     "description": "High-craft example Behavior Pack powered by bedrock-baked-ui.",
     "uuid": "7c94f82e-5f13-4b88-a06c-1c2c8e0b2a11",
-    "version": [1, 0, 0],
+    "version": [1, 0, 1],
     "min_engine_version": [1, 21, 40]
   },
   "modules": [
@@ -13,7 +13,7 @@
       "language": "javascript",
       "uuid": "48b3c10a-b510-4c9d-b6e4-2c6a92f5d102",
       "entry": "scripts/main.js",
-      "version": [1, 0, 0]
+      "version": [1, 0, 1]
     }
   ],
   "dependencies": [

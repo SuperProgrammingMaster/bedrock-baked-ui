@@ -127,7 +127,14 @@ export class BakedMenuManager {
   install(): void {
     if (this.installed) return;
     this.installed = true;
-    this.sweepOrphanMenus();
+    // Defer initial sweep out of early execution (World::getAllPlayers is disallowed at module top-level in Bedrock 2.x)
+    system.run(() => {
+      try {
+        this.sweepOrphanMenus();
+      } catch (err) {
+        this.logErr('sweep.init', err);
+      }
+    });
 
     this.pollRunId = system.runInterval(() => {
       for (const p of world.getAllPlayers()) {

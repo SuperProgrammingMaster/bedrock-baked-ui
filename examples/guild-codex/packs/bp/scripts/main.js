@@ -1,5 +1,5 @@
 // examples/guild-codex/packs/bp/src/main.ts
-import { EntityComponentTypes as EntityComponentTypes2, ItemStack as ItemStack2, world as world3 } from "@minecraft/server";
+import { EntityComponentTypes as EntityComponentTypes2, ItemStack as ItemStack2, system as system3, world as world3 } from "@minecraft/server";
 
 // dist/runtime/sim.js
 var MENU_MARKER_ITEM = "minecraft:paper";
@@ -172,7 +172,13 @@ var BakedMenuManager = class {
     if (this.installed)
       return;
     this.installed = true;
-    this.sweepOrphanMenus();
+    system.run(() => {
+      try {
+        this.sweepOrphanMenus();
+      } catch (err) {
+        this.logErr("sweep.init", err);
+      }
+    });
     this.pollRunId = system.runInterval(() => {
       for (const p of world.getAllPlayers()) {
         try {
@@ -2587,13 +2593,15 @@ world3.beforeEvents.chatSend.subscribe((ev) => {
   const msg = ev.message.trim().toLowerCase();
   if (msg === "!codex") {
     ev.cancel = true;
-    codexMenu.open(ev.sender, "en_home");
+    system3.run(() => codexMenu.open(ev.sender, "en_home"));
   } else if (msg === "!codex ko") {
     ev.cancel = true;
-    codexMenu.open(ev.sender, "ko_home");
+    system3.run(() => codexMenu.open(ev.sender, "ko_home"));
   } else if (msg === "!codex form") {
     ev.cancel = true;
-    void codexMenu.openActionFormFallback(ev.sender);
+    system3.run(() => {
+      void codexMenu.openActionFormFallback(ev.sender);
+    });
   }
 });
 export {

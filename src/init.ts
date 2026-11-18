@@ -406,7 +406,7 @@ function starterBpExample(): string {
   return `// Example Behavior Pack wiring using bedrock-baked-ui/runtime.
 // After running \`baked-ui bake\`, import your generated manifest and register BakedMenuManager.
 
-import { world } from '@minecraft/server';
+import { system, world } from '@minecraft/server';
 import { BakedMenuManager, fitText } from 'bedrock-baked-ui/runtime';
 import manifest from './generated/baked_site.json';
 
@@ -481,7 +481,7 @@ export function initStarterMenu(): void {
   world.beforeEvents.chatSend.subscribe((ev) => {
     if (ev.message.trim() === '!menu form') {
       ev.cancel = true;
-      void menu.openActionFormFallback(ev.sender);
+      system.run(() => { void menu.openActionFormFallback(ev.sender); });
     }
   });
 }

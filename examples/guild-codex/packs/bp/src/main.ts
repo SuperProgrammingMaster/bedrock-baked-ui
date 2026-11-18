@@ -1,6 +1,6 @@
 // Aetherium Guild Codex: complete Behavior Pack example powered by bedrock-baked-ui/runtime.
 
-import { EntityComponentTypes, ItemStack, world, type Player } from '@minecraft/server';
+import { EntityComponentTypes, ItemStack, system, world, type Player } from '@minecraft/server';
 import { BakedMenuManager, fitText } from 'bedrock-baked-ui/runtime';
 import manifest from './generated/baked_site.json';
 
@@ -253,12 +253,12 @@ world.beforeEvents.chatSend.subscribe((ev) => {
   const msg = ev.message.trim().toLowerCase();
   if (msg === '!codex') {
     ev.cancel = true;
-    codexMenu.open(ev.sender, 'en_home');
+    system.run(() => codexMenu.open(ev.sender, 'en_home'));
   } else if (msg === '!codex ko') {
     ev.cancel = true;
-    codexMenu.open(ev.sender, 'ko_home');
+    system.run(() => codexMenu.open(ev.sender, 'ko_home'));
   } else if (msg === '!codex form') {
     ev.cancel = true;
-    void codexMenu.openActionFormFallback(ev.sender);
+    system.run(() => { void codexMenu.openActionFormFallback(ev.sender); });
   }
 });
