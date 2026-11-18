@@ -1,39 +1,66 @@
+<div align="center">
+
+<img src="docs/assets/logo.png" width="128" height="128" alt="bedrock-baked-ui logo" />
+
 # bedrock-baked-ui
 
-**Compile standard HTML5, CSS3, SVG, and Canvas into native Minecraft Bedrock JsonUI + zero-flicker Entity Inventory UI.**
+**Compile HTML, CSS, SVG, and Canvas into native Minecraft Bedrock JsonUI**
 
-Works on standard `.mcpack` resource packs, Realms, and dedicated servers (including Bedrock 1.26.65+), with **zero runtime npm dependencies**, **no Puppeteer/Playwright**, and **no Python/Pillow**.
+Zero-flicker Entity Inventory UI + Pure-Node Compiler & TypeScript Runtime SDK
 
----
+[![Minecraft Bedrock](https://img.shields.io/badge/minecraft-1.26.65%2B%20(Bedrock)-52a535?style=flat)](https://www.minecraft.net)
+[![Node.js](https://img.shields.io/badge/node-%3E%3D22-339933?style=flat&logo=node.js&logoColor=white)](https://nodejs.org)
+[![Zero Runtime Deps](https://img.shields.io/badge/runtime%20deps-0-2ea043?style=flat)](#why-baked-ui)
+[![TypeScript](https://img.shields.io/badge/typescript-5.6-3178c6?style=flat&logo=typescript&logoColor=white)](https://www.typescriptlang.org)
+[![License: MIT](https://img.shields.io/badge/license-MIT-eab308?style=flat)](#license)
 
-## Why Baked UI?
-
-Writing complex Minecraft Bedrock UIs directly in **JsonUI** (`ui/chest_screen.json`, `ui/pocket_containers.json`, `ui/server_form.json`, `ui/hud_screen.json`) is verbose and slow to iterate on, yet standard JsonUI works reliably across vanilla resource packs without custom engine hacks.
-
-`bedrock-baked-ui` lets you author rich UIs using web standards and compiles them into Bedrock-native assets:
-
-- **Zero-flicker Fullscreen Menus (`baked-ui bake`)**: Uses an invisible, zero-collision 27-slot container entity (`chest_screen.json` + `pocket_containers.json`) so clicking buttons updates screens and dynamic text **in-place** without closing or reopening the UI.
-- **`ActionFormData` Fallback (`server_form.json`)**: Automatically emitted alongside Entity Inventory UI for chat commands or fallback environments.
-- **HiDPI Static Screens + Pure-JS PNG Quantization**: Renders crisp `2x`/`3x` screenshots using your system Chrome/Edge via raw CDP and shrinks opaque PNGs with a built-in median-cut 256-color quantizer.
-- **`flip_book` Canvas/CSS Animations (`[data-anim]`)**: Captures seamless loop frames and stitches horizontal spritesheets + JsonUI `flip_book` bindings automatically in pure Node.js.
-- **Live Server-Driven Text (`[data-dyn]`)**: Samples parent solid background colors to mask placeholder text and overlays live `ItemStack.nameTag` values directly in JsonUI.
-- **Behavior Pack Runtime SDK (`bedrock-baked-ui/runtime`)**: Drop-in `BakedMenuManager` with PvP auto-dodge, melee hit pass-through, tick-late marker sweep safety, and orphan entity cleanup.
-- **Experimental Transparent HUD (`baked-ui bake-hud`)**: Compiles transparent `[data-hud-widget]` overlays and byte-sliced `[data-hud-dyn]` live telemetry fields (supports both `subtitle` and `title` channels).
+</div>
 
 ---
 
-## Showcase Example (`examples/guild-codex`)
+## Showcase
 
-See [examples/guild-codex](examples/guild-codex) for a complete, high-craft bilingual (`EN` / `KO`) Guild Codex example powered by **[Lucide Icons](https://lucide.dev)** (`<i data-lucide="..."></i>`), featuring 8 additive states, 4 shared `[data-dyn]` live telemetry slots, 2 seamless 2x HiDPI `flip_book` animations built directly from Lucide SVGs + CSS transforms, and a ready-to-wire Behavior Pack script.
+Built with standard HTML, CSS, and **[Lucide Icons](https://lucide.dev)** (`examples/guild-codex`), then compiled directly into native Bedrock JsonUI (`ui/chest_screen.json`, `ui/pocket_containers.json`, `ui/server_form.json`) with **2x HiDPI PNGs**, **Lucide SVG `flip_book` animations**, and **zero-flicker in-place state switching**.
 
-![Aetherium Field Codex Home](examples/guild-codex/packs/rp/textures/ui/guild_codex/s_00_en_home.png)
-![Aetherium Relic Armory](examples/guild-codex/packs/rp/textures/ui/guild_codex/s_01_en_shop.png)
+<table>
+  <tr>
+    <td><img src="examples/guild-codex/packs/rp/textures/ui/guild_codex/s_00_en_home.png" alt="Field Study Hero" /></td>
+    <td><img src="examples/guild-codex/packs/rp/textures/ui/guild_codex/s_01_en_shop.png" alt="Runic Armory" /></td>
+  </tr>
+  <tr>
+    <td><img src="examples/guild-codex/packs/rp/textures/ui/guild_codex/s_02_en_quests.png" alt="Field Contracts" /></td>
+    <td><img src="examples/guild-codex/packs/rp/textures/ui/guild_codex/s_03_en_profile.png" alt="Build Notes & Settings" /></td>
+  </tr>
+</table>
+
+<div align="center">
+  <sub>Animated Lucide SVG <code>flip_book</code> spritesheets baked automatically in pure Node.js:</sub><br/><br/>
+  <img src="examples/guild-codex/packs/rp/textures/ui/guild_codex/anim_tactical_reticle.png" alt="Tactical Reticle Flipbook" width="85%" /><br/>
+  <img src="examples/guild-codex/packs/rp/textures/ui/guild_codex/anim_forge_flame.png" alt="Forge Flame Flipbook" width="85%" />
+</div>
 
 ```bash
 node dist/cli.js dev --config examples/guild-codex
 node dist/cli.js bake --config examples/guild-codex
 node dist/cli.js validate --config examples/guild-codex
+node examples/guild-codex/build_mcpack.mjs
 ```
+
+---
+
+## Why Baked UI?
+
+Writing rich Minecraft Bedrock UIs directly in **JsonUI** (`ui/chest_screen.json`, `ui/pocket_containers.json`, `ui/server_form.json`, `ui/hud_screen.json`) is verbose and slow to iterate on, yet standard JsonUI works reliably across normal `.mcpack` resource packs, Realms, and dedicated servers.
+
+`bedrock-baked-ui` lets you author interfaces using web standards and compiles them into Bedrock-native assets with **zero runtime npm dependencies**, **no Puppeteer/Playwright**, and **no Python/Pillow**:
+
+- **Zero-flicker Fullscreen Menus (`baked-ui bake`)**: Uses an invisible, zero-collision 27-slot container entity (`chest_screen.json` + `pocket_containers.json`) so clicking buttons updates screens and dynamic text **in-place** without closing or reopening the UI.
+- **`ActionFormData` Fallback (`server_form.json`)**: Automatically emitted alongside Entity Inventory UI for chat commands or fallback environments.
+- **HiDPI Static Screens + Pure-JS PNG Quantization**: Renders crisp `2x`/`3x` screenshots using your system Chrome/Edge via raw CDP and shrinks opaque PNGs with a built-in median-cut 256-color quantizer.
+- **`flip_book` SVG/Canvas/CSS Animations (`[data-anim]`)**: Captures seamless loop frames and stitches horizontal spritesheets + JsonUI `flip_book` bindings automatically in pure Node.js.
+- **Live Server-Driven Text (`[data-dyn]`)**: Samples parent solid background colors to mask placeholder text and overlays live `ItemStack.nameTag` values directly in JsonUI.
+- **Behavior Pack Runtime SDK (`bedrock-baked-ui/runtime`)**: Drop-in `BakedMenuManager` with early-execution safety, PvP auto-dodge, melee hit pass-through, tick-late marker sweep safety, and orphan entity cleanup.
+- **Experimental Transparent HUD (`baked-ui bake-hud`)**: Compiles transparent `[data-hud-widget]` overlays and byte-sliced `[data-hud-dyn]` live telemetry fields (supports both `subtitle` and `title` channels).
 
 ---
 
@@ -81,6 +108,7 @@ Generated outputs:
 ### 4. Wire the Behavior Pack Runtime SDK
 
 ```ts
+import { system, world } from '@minecraft/server';
 import { BakedMenuManager, fitText } from 'bedrock-baked-ui/runtime';
 import manifest from './generated/baked_site.json';
 
@@ -102,6 +130,13 @@ const menu = new BakedMenuManager(manifest, {
 });
 
 menu.install();
+
+world.beforeEvents.chatSend.subscribe((ev) => {
+  if (ev.message.trim() === '!menu') {
+    ev.cancel = true;
+    system.run(() => menu.open(ev.sender));
+  }
+});
 ```
 
 ---
@@ -117,7 +152,7 @@ window.__BAKE__ = {
   clickHit(hitId) { /* trigger click */ return state.tab; },
   // Optional:
   getMeta() { return { url: 'baked://' + state.tab, title: document.title }; },
-  setAnimFrame(phase) { /* phase in [0, 1) */ redrawCanvas(phase); },
+  setAnimFrame(phase) { /* phase in [0, 1) */ redrawAnim(phase); },
   whenReady() { return Promise.all(/* wait for images/fonts */); },
 };
 ```
