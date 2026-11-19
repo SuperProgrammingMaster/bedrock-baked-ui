@@ -84,9 +84,12 @@ Writing rich Minecraft Bedrock UIs directly in **JsonUI** (`ui/chest_screen.json
 ```bash
 npx bedrock-baked-ui init ./my-addon --namespace my_ui --theme gold
 cd my-addon
+npm i -D bedrock-baked-ui esbuild
 ```
 
-This creates:
+Install `bedrock-baked-ui` and `esbuild` **locally** in the project. `npx` alone runs the CLI, but your Behavior Pack script imports `bedrock-baked-ui/runtime`, and esbuild can only bundle that import from the project's own `node_modules`. Without it, `pack` fails with `Could not resolve "bedrock-baked-ui/runtime"`.
+
+`init` creates:
 - `baked-ui.config.json`: compiler configuration
 - `ui-src/index.html`: interactive 3-tab starter menu (`[data-hit]`, `[data-dyn]`, `[data-anim]`)
 - `ui-src/hud.html`: experimental transparent HUD template
@@ -113,7 +116,7 @@ Generated outputs:
 
 ### 4. Wire the Behavior Pack Runtime SDK
 
-Put this code in **`packs/bp/src/main.ts`**, the Behavior Pack script entry that `baked-ui pack` bundles. `init` scaffolds a starter copy at `packs/bp/src/menu_example.ts`, so you can rename it to `main.ts`. The `./generated/baked_site.json` import is the manifest that `bake` writes next to it (`packs/bp/src/generated/baked_site.json`).
+Put this code in **`packs/bp/src/main.ts`**, the Behavior Pack script entry that `baked-ui pack` bundles. `init` scaffolds a starter copy at `packs/bp/src/menu_example.ts`, so you can rename it to `main.ts`. The `./generated/baked_site.json` import is the manifest that `bake` writes next to it (`packs/bp/src/generated/baked_site.json`). The `bedrock-baked-ui/runtime` import needs the local install from step 1 (`npm i -D bedrock-baked-ui`).
 
 ```ts
 // packs/bp/src/main.ts
@@ -150,10 +153,10 @@ world.beforeEvents.chatSend.subscribe((ev) => {
 
 ### 5. Pack into a `.mcaddon`
 
-Bedrock can't load TypeScript, npm imports, or JSON imports directly, so the script has to be bundled. Install esbuild and `bedrock-baked-ui` locally once (the runtime import gets bundled into `main.js`, and an `npx`-only install isn't visible to esbuild), then run `pack`:
+Bedrock can't load TypeScript, npm imports, or JSON imports directly, so the script has to be bundled. `pack` does this with the local `esbuild` and `bedrock-baked-ui` from step 1. If you skipped that step, run the install line first:
 
 ```bash
-npm i -D esbuild bedrock-baked-ui
+npm i -D bedrock-baked-ui esbuild
 npx bedrock-baked-ui pack
 ```
 
