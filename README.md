@@ -113,7 +113,10 @@ Generated outputs:
 
 ### 4. Wire the Behavior Pack Runtime SDK
 
+Put this code in **`packs/bp/src/main.ts`**, the Behavior Pack script entry that `baked-ui pack` bundles. `init` scaffolds a starter copy at `packs/bp/src/menu_example.ts`, so you can rename it to `main.ts`. The `./generated/baked_site.json` import is the manifest that `bake` writes next to it (`packs/bp/src/generated/baked_site.json`).
+
 ```ts
+// packs/bp/src/main.ts
 import { system, world } from '@minecraft/server';
 import { BakedMenuManager, fitText } from 'bedrock-baked-ui/runtime';
 import manifest from './generated/baked_site.json';
@@ -144,6 +147,34 @@ world.beforeEvents.chatSend.subscribe((ev) => {
   }
 });
 ```
+
+### 5. Pack into a `.mcaddon`
+
+Bedrock can't load TypeScript, npm imports, or JSON imports directly, so the script has to be bundled. Install esbuild once, then run `pack`:
+
+```bash
+npm i -D esbuild
+npx bedrock-baked-ui pack
+```
+
+`pack` runs these steps in order:
+1. Bakes the UI again (skip with `--no-bake`).
+2. Validates the result.
+3. Bundles `packs/bp/src/main.ts` into `packs/bp/scripts/main.js` with esbuild. This file is the `entry` in the BP `manifest.json`. `@minecraft/server` and `@minecraft/server-ui` stay external.
+4. Writes `dist/<ns>.mcaddon` containing `<ns>_bp/` and `<ns>_rp/`.
+
+To install the add-on, double-click the `.mcaddon` file.
+
+```text
+packs/bp/
+  manifest.json              # script entry: scripts/main.js
+  src/
+    main.ts                  # your runtime code (step 4)
+    generated/baked_site.json
+  scripts/main.js            # produced by `pack`
+```
+
+> If esbuild isn't found in `node_modules`, `pack` skips bundling without an error. Look for `BP bundled` in its output. To use your own bundler instead, pass `--no-bundle` and write the output to `packs/bp/scripts/main.js`. Use `--out <path>` to change where the `.mcaddon` is written.
 
 ---
 
