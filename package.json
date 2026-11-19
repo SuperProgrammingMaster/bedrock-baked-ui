@@ -1,6 +1,6 @@
 {
   "name": "bedrock-baked-ui",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "HTML/CSS/Canvas to Minecraft Bedrock JsonUI + Entity Inventory UI compiler & runtime SDK",
   "license": "MIT",
   "author": "SuperProgrammingMaster",
