@@ -14,7 +14,8 @@
   },
   "type": "module",
   "bin": {
-    "baked-ui": "./dist/cli.js"
+    "bedrock-baked-ui": "dist/cli.js",
+    "baked-ui": "dist/cli.js"
   },
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
