@@ -8,6 +8,7 @@
 
 Zero-flicker Entity Inventory UI + Pure-Node Compiler & TypeScript Runtime SDK
 
+[![npm](https://img.shields.io/npm/v/bedrock-baked-ui?style=flat&color=cb3837&logo=npm&logoColor=white)](https://www.npmjs.com/package/bedrock-baked-ui)
 [![Minecraft Bedrock](https://img.shields.io/badge/minecraft-1.26.65%2B%20(Bedrock)-52a535?style=flat)](https://www.minecraft.net)
 [![Node.js](https://img.shields.io/badge/node-%3E%3D22-339933?style=flat&logo=node.js&logoColor=white)](https://nodejs.org)
 [![Zero Runtime Deps](https://img.shields.io/badge/runtime%20deps-0-2ea043?style=flat)](#why-baked-ui)
