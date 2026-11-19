@@ -13,6 +13,7 @@ This guide explains how `bedrock-baked-ui` works under the hood, every hard limi
    - `[data-hit]` bounding boxes converted to percentage offsets (`xPct`, `yPct`, `wPct`, `hPct`) and deduplicated into `§h§00..§h§99`.
    - `[data-dyn]` live text regions and their nearest opaque ancestor `background-color` (encoded as mask variant tags `§9§0..§9§9`).
    - `[data-anim]` elements stepped through `phase = f / frames` (`0 <= phase < 1`) and stitched horizontally into `flip_book` spritesheets.
+   - `[data-motion]` elements hidden during static state capture (preventing frozen ghosts) and then isolated on a transparent background to capture a single 32-bit RGBA PNG paired with chained native JsonUI `offset`, `size`, `alpha`, and `wait` animations.
 3. **Emit JsonUI & Entity**:
    - `ui/<ns>.json` defines `inv_overlay`, `inv_window`, `inv_hitbox_btn`, `inv_exit_btn`, `flip_book` animations, and (if enabled) `browser_window` for `ActionFormData`.
    - `ui/chest_screen.json` & `ui/pocket_containers.json` inject `<ns>.inv_overlay` and hide vanilla chest UI whenever `$container_title == invTitleTag`.
@@ -55,6 +56,17 @@ maxButtonsPerPage = 25 - (number of globally unique [data-dyn] (dynId, x, y, w, 
 2. In your HTML, hide placeholder text when `window.__BAKE_HEADLESS__` is true (`el.style.color = 'transparent'`) so placeholder glyphs never bleed around the mask edges.
 3. Make `[data-dyn]` containers at least **5.5% of viewport height** (~33px at 594px height) and keep `data-dyn-scale <= 1.0` so smooth fonts don't clip vertically.
 4. Keep formatted text within Bedrock's **255-character** `ItemStack.nameTag` limit and use `fitText(text, maxUnits)` for CJK-aware truncation.
+
+### Native 60fps Motion Animations (`[data-motion]`)
+- Use `[data-motion="<id>"]` whenever an icon, emblem, badge, aura, or slider moves, breathes, or glows smoothly. Unlike `flip_book`, it stores only **one transparent RGBA PNG** per unique `data-motion-key` and lets Bedrock's native UI engine interpolate at 60fps with zero 2800px width cap and zero chest-slot cost.
+- Composable effects via `data-motion-type`:
+  - `float` / `bob` (`anim_type: "offset"` vertical), `slide-x` / `sway` (`offset` horizontal), `slide-y` (`offset` vertical)
+  - `pulse` / `breathe` (`anim_type: "size"` centered around the sprite)
+  - `glow` / `fade` (`anim_type: "alpha"` on wrapper panel with `propagate_alpha: true`)
+  - Combine freely with `+`, e.g. `data-motion-type="float+pulse+glow"`.
+- **Shadows & Glow Padding**: Add `data-motion-pad="12"` (CSS px) when an element uses `box-shadow` or SVG `drop-shadow` so outer glow pixels are included inside the transparent PNG.
+- **Staggered Waves**: Use `data-motion-delay="0.25"` (seconds) to prepend a `wait` step before the seamless ping-pong loop starts.
+- All offset distances (`data-motion-amp`, `data-motion-dx`, `data-motion-dy`) are automatically converted to element-relative `%` units so motion scales proportionally across every Bedrock resolution and GUI scale.
 
 ### Flipbook Animations (`[data-anim]`)
 - Horizontal sheet width is capped at `maxSheetWidth` (default `2800px`). If `w * texScale * frames > 2800`, frames are automatically downscaled.

@@ -6,6 +6,7 @@ import path from 'node:path';
 import {
   bakeHud,
   bakeSite,
+  decodePng,
   loadConfig,
   readPngDimensions,
   scaffoldProject,
@@ -88,6 +89,110 @@ test('end-to-end: init -> preview -> bakeSite -> validate -> bakeHud (subtitle &
     // '§h§u§d' is 9 UTF-8 bytes, so the first 20-byte field must slice bytes [9..29) on #hud_title_text_string
     assert.ok(hudUiText.includes("'%.29s' * #hud_title_text_string"));
     assert.ok(hudUiText.includes("'%.9s' * #hud_title_text_string"));
+  } finally {
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+  }
+});
+
+test('native 60fps [data-motion]: transparent RGBA sprites, ghost-free background, chained JsonUI offset/size/alpha', async () => {
+  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'bedrock-baked-ui-motion-'));
+  try {
+    scaffoldProject({
+      targetDir: tmpDir,
+      namespace: 'mot_ui',
+      entityId: 'mot_ui:menu',
+      theme: 'neon',
+      includeHud: false,
+    });
+    const config = loadConfig(tmpDir);
+
+    // Replace starter HTML with a focused [data-motion] test page
+    const html = `<!doctype html>
+<html>
+<head>
+<meta charset="utf-8" />
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 1056px; height: 594px; background: #101420; overflow: hidden; }
+  #app { position: relative; width: 1056px; height: 594px; background: #101420; }
+  .orb {
+    position: absolute; left: 100px; top: 100px; width: 80px; height: 80px;
+    border-radius: 50%; background: #ff2266;
+  }
+  .badge {
+    position: absolute; left: 260px; top: 100px; width: 120px; height: 60px;
+    border-radius: 16px; background: #22d3ee;
+  }
+  .glowonly {
+    position: absolute; left: 420px; top: 100px; width: 64px; height: 64px;
+    border-radius: 12px; background: #a855f7;
+  }
+  .close-btn {
+    position: absolute; right: 24px; top: 24px; width: 80px; height: 36px;
+    background: #334155; color: #fff; display: flex; align-items: center; justify-content: center;
+  }
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="orb" data-motion="orb" data-motion-type="float+glow" data-motion-amp="12" data-motion-min="0.3" data-motion-duration="1.1"></div>
+  <div class="badge" data-motion="badge" data-motion-type="pulse+slide-x" data-motion-amp="10" data-motion-scale="1.12" data-motion-delay="0.25"></div>
+  <div class="glowonly" data-motion="glowonly" data-motion-type="glow" data-motion-min="0.25"></div>
+  <div class="close-btn" data-hit="close" data-special="close">Close</div>
+</div>
+<script>
+  window.__BAKE__ = {
+    getStateKey: () => 'home',
+    setStateKey: () => {},
+    clickHit: () => 'home',
+    getMeta: () => ({ url: 'home', title: 'Motion Test' }),
+  };
+</script>
+</body>
+</html>`;
+    fs.writeFileSync(config.site.entry, html, 'utf8');
+
+    const res = await bakeSite(config);
+    assert.equal(res.stateCount, 1);
+    assert.equal(res.motionCount, 3);
+    assert.ok(res.manifest.motions?.orb);
+    assert.ok(res.manifest.motions?.badge);
+    assert.ok(res.manifest.motions?.glowonly);
+
+    // 1. Verify transparent RGBA capture on the circular orb (corner is transparent, center is magenta)
+    const orbPng = fs.readFileSync(path.join(config.rpDir, res.manifest.motions.orb.texturePng));
+    const orbImg = decodePng(orbPng);
+    assert.equal(orbImg.data[3], 0, 'Corner of circular motion sprite should be transparent (alpha=0)');
+    const midIdx = (Math.floor(orbImg.height / 2) * orbImg.width + Math.floor(orbImg.width / 2)) * 4;
+    assert.ok(orbImg.data[midIdx] > 200 && orbImg.data[midIdx + 3] === 255, 'Center of orb should be opaque magenta');
+
+    // 2. Verify static state background has NO ghost copy of the magenta orb
+    const bgPng = fs.readFileSync(path.join(config.rpDir, res.manifest.states.home.texturePng));
+    const bgImg = decodePng(bgPng);
+    const scale = config.site.texScale;
+    const bgOrbCenter = (Math.floor(140 * scale) * bgImg.width + Math.floor(140 * scale)) * 4;
+    assert.ok(bgImg.data[bgOrbCenter] < 40, `Background should be dark #101420 with no ghost orb, got R=${bgImg.data[bgOrbCenter]}`);
+
+    // 3. Verify generated JsonUI has native offset, size, alpha, wait animations & ping-pong chaining
+    const uiJson = JSON.parse(fs.readFileSync(path.join(config.rpDir, 'ui', 'mot_ui.json'), 'utf8'));
+    assert.equal(uiJson.mot_orb_off_a.anim_type, 'offset');
+    assert.equal(uiJson.mot_orb_off_a.next, '@mot_ui.mot_orb_off_b');
+    assert.equal(uiJson.mot_orb_off_b.next, '@mot_ui.mot_orb_off_a');
+    assert.equal(uiJson.mot_orb_al_a.anim_type, 'alpha');
+    assert.equal(uiJson.mot_badge_sz_a.anim_type, 'size');
+    assert.equal(uiJson.mot_badge_off_w.anim_type, 'wait');
+    assert.equal(uiJson.mot_badge_off_w.next, '@mot_ui.mot_badge_off_a');
+
+    // Regression: alpha-only motion puts animation on wrapper panel, so inner static sprite must NOT set disable_anim_fast_forward
+    const stControls = uiJson.inv_window.controls[0].inv_stack.controls[0].slot_01_state.controls[0].stpanel_00.controls;
+    const glowWrapper = stControls.find((c) => c.motion_2)?.motion_2;
+    assert.ok(glowWrapper?.alpha);
+    assert.equal(glowWrapper.controls[0].sprite.disable_anim_fast_forward, undefined);
+
+    // 4. Validator passes with 0 errors and reports motionCount=3
+    const report = validateSiteBake(config);
+    assert.equal(report.ok, true, JSON.stringify(report.issues, null, 2));
+    assert.equal(report.stats.motionCount, 3);
   } finally {
     fs.rmSync(tmpDir, { recursive: true, force: true });
   }

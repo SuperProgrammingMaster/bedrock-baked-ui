@@ -15,6 +15,7 @@ export function validateSiteBake(config: ResolvedBakedUiConfig): ValidationResul
     hitboxCount: 0,
     dynCount: 0,
     animCount: 0,
+    motionCount: 0,
     maxButtonsPerState: 0,
     maxSlotBudget: 25,
   };
@@ -33,6 +34,7 @@ export function validateSiteBake(config: ResolvedBakedUiConfig): ValidationResul
   stats.hitboxCount = manifest.hitboxCount ?? 0;
   stats.dynCount = manifest.dynCount ?? 0;
   stats.animCount = manifest.animCount ?? Object.keys(manifest.animations ?? {}).length;
+  stats.motionCount = manifest.motionCount ?? Object.keys(manifest.motions ?? {}).length;
   stats.maxSlotBudget = Math.max(0, 25 - stats.dynCount);
 
   if (stats.stateCount <= 0) {
@@ -136,6 +138,23 @@ export function validateSiteBake(config: ResolvedBakedUiConfig): ValidationResul
     }
   }
 
+  for (const mot of Object.values(manifest.motions ?? {})) {
+    const pngPath = path.join(rpDir, mot.texturePng);
+    if (!fs.existsSync(pngPath)) {
+      issues.push({ level: 'error', code: 'MISSING_MOTION_PNG', message: `Missing motion sprite PNG: ${pngPath}` });
+    } else {
+      try {
+        readPngDimensions(fs.readFileSync(pngPath));
+      } catch (err) {
+        issues.push({
+          level: 'error',
+          code: 'INVALID_MOTION_PNG',
+          message: `Motion sprite '${mot.motionKey}' PNG is invalid: ${(err as Error).message}`,
+        });
+      }
+    }
+  }
+
   // JsonUI structural checks
   const uiDir = path.join(rpDir, 'ui');
   const uiDefsPath = path.join(uiDir, '_ui_defs.json');
@@ -173,6 +192,17 @@ export function validateSiteBake(config: ResolvedBakedUiConfig): ValidationResul
     for (const st of Object.values(manifest.states ?? {})) {
       if (!text.includes(st.tag)) {
         issues.push({ level: 'error', code: 'MISSING_STATE_TAG', message: `ui/${ns}.json is missing state tag '${st.tag}' (${st.key}).` });
+      }
+    }
+    for (const mot of Object.values(manifest.motions ?? {})) {
+      for (const animName of mot.animNames ?? []) {
+        if (!text.includes(`"${animName}"`)) {
+          issues.push({
+            level: 'error',
+            code: 'MISSING_MOTION_ANIM',
+            message: `ui/${ns}.json is missing native animation '${animName}' for motion '${mot.motionKey}'.`,
+          });
+        }
       }
     }
   }

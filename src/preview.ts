@@ -40,6 +40,7 @@ function buildInspectorSnippet(texScale: number, maxSheetW: number): string {
     var hits = [].slice.call(document.querySelectorAll('[data-hit]'));
     var dyns = [].slice.call(document.querySelectorAll('[data-dyn],[data-hud-dyn]'));
     var anims = [].slice.call(document.querySelectorAll('[data-anim]'));
+    var motions = [].slice.call(document.querySelectorAll('[data-motion]'));
     var total = hits.length + dyns.length;
     var stateKey = window.__BAKE__ && window.__BAKE__.getStateKey ? window.__BAKE__.getStateKey() : '(no __BAKE__)';
     var warn = [];
@@ -79,6 +80,11 @@ function buildInspectorSnippet(texScale: number, maxSheetW: number): string {
           warn.push('anim "' + id + '" exceeds ${maxSheetW}px sheet width (will downscale)');
         }
       });
+      motions.forEach(function(el){
+        var id = el.getAttribute('data-motion');
+        var type = el.getAttribute('data-motion-type') || 'float';
+        drawBox(el, '#34d399', 'motion:' + id + ' (' + type + ', 60fps)');
+      });
     }
 
     var budgetColor = total > 25 ? '#f87171' : (total >= 22 ? '#fbbf24' : '#4ade80');
@@ -87,7 +93,7 @@ function buildInspectorSnippet(texScale: number, maxSheetW: number): string {
       '<span><b>BakedUI</b> · <code>' + stateKey + '</code></span>' +
       '<button id="__bui_toggle" style="cursor:pointer;background:' + (enabled ? '#38bdf8' : '#334155') + ';color:' + (enabled ? '#0f172a' : '#f8fafc') + ';border:0;border-radius:4px;padding:2px 7px;font:bold 11px monospace;">' + (enabled ? 'Boxes: ON' : 'Boxes: OFF') + '</button>' +
       '</div>' +
-      '<div style="margin-top:4px;color:' + budgetColor + ';">Slots: ' + hits.length + ' hit + ' + dyns.length + ' dyn = <b>' + total + '/25</b> · Anims: ' + anims.length + '</div>' +
+      '<div style="margin-top:4px;color:' + budgetColor + ';">Slots: ' + hits.length + ' hit + ' + dyns.length + ' dyn = <b>' + total + '/25</b> · Anims: ' + anims.length + ' · Motions: ' + motions.length + '</div>' +
       (warn.length ? '<div style="margin-top:4px;color:#fbbf24;">⚠ ' + warn.join(' | ') + '</div>' : '');
     var btn = document.getElementById('__bui_toggle');
     if (btn) btn.onclick = function(){ enabled = !enabled; overlay.style.display = enabled ? 'block' : 'none'; refresh(); };

@@ -62,6 +62,69 @@ export interface BakedAnimationSpec {
   readonly placements: readonly BakedAnimationPlacement[];
 }
 
+export type MotionEasing =
+  | 'linear'
+  | 'spring'
+  | 'in_quad'
+  | 'out_quad'
+  | 'in_out_quad'
+  | 'in_cubic'
+  | 'out_cubic'
+  | 'in_out_cubic'
+  | 'in_quart'
+  | 'out_quart'
+  | 'in_out_quart'
+  | 'in_quint'
+  | 'out_quint'
+  | 'in_out_quint'
+  | 'in_sine'
+  | 'out_sine'
+  | 'in_out_sine'
+  | 'in_expo'
+  | 'out_expo'
+  | 'in_out_expo'
+  | 'in_circ'
+  | 'out_circ'
+  | 'in_out_circ'
+  | 'in_bounce'
+  | 'out_bounce'
+  | 'in_out_bounce'
+  | 'in_back'
+  | 'out_back'
+  | 'in_out_back'
+  | 'in_elastic'
+  | 'out_elastic'
+  | 'in_out_elastic';
+
+export interface BakedMotionPlacement {
+  readonly x: number;
+  readonly y: number;
+  readonly w: number;
+  readonly h: number;
+  readonly states: readonly string[];
+}
+
+export interface BakedMotionSpec {
+  readonly motionKey: string;
+  readonly motionId: string;
+  readonly effects: readonly string[];
+  readonly texture: string;
+  readonly texturePng: string;
+  readonly width: number;
+  readonly height: number;
+  readonly duration: number;
+  readonly delay: number;
+  readonly easing: MotionEasing | string;
+  readonly dx: number;
+  readonly dy: number;
+  readonly scaleMin: number;
+  readonly scaleMax: number;
+  readonly alphaMin: number;
+  readonly alphaMax: number;
+  readonly animNames: readonly string[];
+  readonly placements: readonly BakedMotionPlacement[];
+}
+
 export interface BakedSiteManifest {
   readonly version: number;
   readonly namespace: string;
@@ -75,8 +138,10 @@ export interface BakedSiteManifest {
   readonly hitboxCount: number;
   readonly stateCount: number;
   readonly animCount: number;
+  readonly motionCount?: number;
   readonly dynCount: number;
   readonly animations: Record<string, BakedAnimationSpec>;
+  readonly motions?: Record<string, BakedMotionSpec>;
   readonly states: Record<string, BakedState>;
 }
 
@@ -254,6 +319,7 @@ export interface SiteBakeResult {
   uniquePngs: number;
   hitboxCount: number;
   animCount: number;
+  motionCount: number;
   dynCount: number;
   totalBytes: number;
 }
@@ -280,6 +346,7 @@ export interface ValidationResult {
     hitboxCount: number;
     dynCount: number;
     animCount: number;
+    motionCount: number;
     maxButtonsPerState: number;
     maxSlotBudget: number;
   };

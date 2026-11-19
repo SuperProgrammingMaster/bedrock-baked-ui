@@ -9,6 +9,7 @@
 Zero-flicker Entity Inventory UI + Pure-Node Compiler & TypeScript Runtime SDK
 
 [![npm](https://img.shields.io/npm/v/bedrock-baked-ui?style=flat&color=cb3837&logo=npm&logoColor=white)](https://www.npmjs.com/package/bedrock-baked-ui)
+[![Discord](https://img.shields.io/badge/Discord-Join%20Server-5865F2?style=flat&logo=discord&logoColor=white)](https://discord.gg/rNKWYb2V7v)
 [![Minecraft Bedrock](https://img.shields.io/badge/minecraft-1.26.65%2B%20(Bedrock)-52a535?style=flat)](https://www.minecraft.net)
 [![Node.js](https://img.shields.io/badge/node-%3E%3D22-339933?style=flat&logo=node.js&logoColor=white)](https://nodejs.org)
 [![Zero Runtime Deps](https://img.shields.io/badge/runtime%20deps-0-2ea043?style=flat)](#why-baked-ui)
@@ -58,6 +59,7 @@ Writing rich Minecraft Bedrock UIs directly in **JsonUI** (`ui/chest_screen.json
 - **Zero-flicker Fullscreen Menus (`baked-ui bake`)**: Uses an invisible, zero-collision 27-slot container entity (`chest_screen.json` + `pocket_containers.json`) so clicking buttons updates screens and dynamic text **in-place** without closing or reopening the UI.
 - **`ActionFormData` Fallback (`server_form.json`)**: Automatically emitted alongside Entity Inventory UI for chat commands or fallback environments.
 - **HiDPI Static Screens + Pure-JS PNG Quantization**: Renders crisp `2x`/`3x` screenshots using your system Chrome/Edge via raw CDP and shrinks opaque PNGs with a built-in median-cut 256-color quantizer.
+- **Native 60fps JsonUI Motions (`[data-motion]`)**: Extracts clean transparent RGBA sprites (with ghost-free static backgrounds) and compiles chained Bedrock native `offset`, `size`, `alpha`, and `wait` animations for silky 60fps floating, pulsing, glowing, and sliding elements with zero slot cost.
 - **`flip_book` SVG/Canvas/CSS Animations (`[data-anim]`)**: Captures seamless loop frames and stitches horizontal spritesheets + JsonUI `flip_book` bindings automatically in pure Node.js.
 - **Live Server-Driven Text (`[data-dyn]`)**: Samples parent solid background colors to mask placeholder text and overlays live `ItemStack.nameTag` values directly in JsonUI.
 - **Behavior Pack Runtime SDK (`bedrock-baked-ui/runtime`)**: Drop-in `BakedMenuManager` with early-execution safety, PvP auto-dodge, melee hit pass-through, tick-late marker sweep safety, and orphan entity cleanup.
@@ -169,6 +171,8 @@ window.__BAKE__ = {
 | `data-dyn-scale="0.95"` | Menu / HUD | JsonUI `font_scale_factor`. |
 | `data-dyn-align="left"` | Menu / HUD | JsonUI `text_alignment` (`left` \| `center` \| `right`). |
 | `data-anim="<id>"` | Menu / HUD | Animated region baked into a `flip_book` spritesheet (`data-frames`, `data-fps`, optional `data-anim-key`). |
+| `data-motion="<id>"` | Menu | Smooth 60fps native JsonUI interpolated sprite (`data-motion-type="float\|pulse\|glow\|slide-x\|slide-y"`, combinable with `+`, e.g. `float+pulse+glow`). |
+| `data-motion-*` | Menu | Motion tuning: `data-motion-amp` (px), `data-motion-scale` (`1.08`), `data-motion-min`/`max` (`0.35`..`1.0`), `data-motion-duration` (sec), `data-motion-delay` (sec), `data-motion-easing` (`in_out_sine`), `data-motion-pad` (px for shadows), `data-motion-key`. |
 | `data-hud-widget="<id>"` | HUD | Transparent HUD card captured cleanly without placeholder text. |
 | `data-hud-dyn="<id>"` | HUD | Fixed-byte ASCII field (`data-dyn-len="20"`) or single UTF-8/color tail (`data-dyn-tail="1"`). |
 
@@ -198,6 +202,12 @@ baked-ui bake [--config <path>] [--scale 1..3] [--no-quantize]
 baked-ui bake-hud [--config <path>] [--scale 1..4] [--channel subtitle|title]
 baked-ui validate [--config <path>]
 ```
+
+## Community
+
+Have questions, feedback, or showcase UIs built with `bedrock-baked-ui`? Join the Discord server:
+
+- **Discord**: https://discord.gg/rNKWYb2V7v
 
 ## License
 

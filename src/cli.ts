@@ -126,7 +126,7 @@ async function main(): Promise<void> {
     const res = await bakeSite(config);
     console.log(
       `[baked-ui] Baked ${res.stateCount} states (${res.uniquePngs} unique PNGs, ${fmtKb(res.totalBytes)}), ` +
-        `${res.hitboxCount} hitboxes, ${res.animCount} flip_books, ${res.dynCount} dyn slots.`,
+        `${res.hitboxCount} hitboxes, ${res.animCount} flip_books, ${res.motionCount} 60fps motions, ${res.dynCount} dyn slots.`,
     );
     console.log(`[baked-ui] Manifest -> ${res.manifestPath}`);
 
@@ -160,7 +160,7 @@ async function main(): Promise<void> {
     console.log(
       `[baked-ui] Stats: ${report.stats.stateCount} states, ${report.stats.hitboxCount} hitboxes, ` +
         `${report.stats.dynCount} dyn slots (max ${report.stats.maxButtonsPerState}/${report.stats.maxSlotBudget} buttons/page), ` +
-        `${report.stats.animCount} flip_books.`,
+        `${report.stats.animCount} flip_books, ${report.stats.motionCount} 60fps motions.`,
     );
     for (const issue of report.issues) {
       const prefix = issue.level === 'error' ? 'ERROR' : 'WARN';

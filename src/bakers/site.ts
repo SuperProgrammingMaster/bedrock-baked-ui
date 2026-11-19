@@ -10,6 +10,7 @@ import type {
   BakedAnimationSpec,
   BakedButton,
   BakedDynSlot,
+  BakedMotionSpec,
   BakedSiteManifest,
   BakedState,
   ResolvedBakedUiConfig,
@@ -124,8 +125,70 @@ interface DynRegistryEntry {
   variants: Map<string, DynVariant>;
 }
 
+interface RawMotion {
+  motionId: string;
+  motionKey: string;
+  effects: string[];
+  dx: number;
+  dy: number;
+  hasSize: boolean;
+  scaleMin: number;
+  scaleMax: number;
+  hasAlpha: boolean;
+  alphaMin: number;
+  alphaMax: number;
+  duration: number;
+  delay: number;
+  easing: string;
+  layer: number;
+  domIndex: number;
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+}
+
+interface MotionSpriteEntry {
+  motionKey: string;
+  motionId: string;
+  effects: string[];
+  dx: number;
+  dy: number;
+  hasSize: boolean;
+  scaleMin: number;
+  scaleMax: number;
+  hasAlpha: boolean;
+  alphaMin: number;
+  alphaMax: number;
+  duration: number;
+  delay: number;
+  easing: string;
+  sampleStateKey: string;
+  sampleDomIndex: number;
+  clip: { x: number; y: number; w: number; h: number };
+  pixelW: number;
+  pixelH: number;
+  texRel: string;
+  texPng: string;
+  offsetAnimRef?: string;
+  sizeAnimRef?: string;
+  alphaAnimRef?: string;
+  animNames: string[];
+}
+
+interface MotionPlacementEntry {
+  idx: number;
+  motionKey: string;
+  mx: number;
+  my: number;
+  mw: number;
+  mh: number;
+  stateKeys: string[];
+}
+
 interface InternalState extends BakedState {
   stateAnims: Array<{ animKey: string; xPct: string; yPct: string; wPct: string; hPct: string }>;
+  stateMotions: Array<{ motionKey: string; xPct: string; yPct: string; wPct: string; hPct: string; layer: number }>;
 }
 
 /**
@@ -189,6 +252,8 @@ export async function bakeSite(config: ResolvedBakedUiConfig): Promise<SiteBakeR
     const boxRegistry = new Map<string, BoxEntry>();
     const animSheets = new Map<string, AnimSheetEntry>();
     const animPlacements = new Map<string, AnimPlacementEntry>();
+    const motionSprites = new Map<string, MotionSpriteEntry>();
+    const motionPlacements = new Map<string, MotionPlacementEntry>();
     const dynRegistry = new Map<string, DynRegistryEntry>();
 
     const registerBox = (x: number, y: number, w: number, h: number, hx: number, hy: number, hw: number, hh: number): BoxEntry => {
@@ -234,6 +299,7 @@ export async function bakeSite(config: ResolvedBakedUiConfig): Promise<SiteBakeR
         meta: { url: string; title: string };
         hits: RawHit[];
         anims: RawAnim[];
+        motions: RawMotion[];
         dyns: RawDyn[];
       }>(`
         (async () => {
@@ -269,6 +335,69 @@ export async function bakeSite(config: ResolvedBakedUiConfig): Promise<SiteBakeR
               h: Math.round(r.height),
             };
           }).filter(a => a.w > 4 && a.h > 4);
+          const motions = [...document.querySelectorAll('[data-motion]')].map((el, domIndex) => {
+            const r = el.getBoundingClientRect();
+            const motionId = el.getAttribute('data-motion') || 'motion';
+            const rawKey = el.getAttribute('data-motion-key') || motionId;
+            const rawType = (el.getAttribute('data-motion-type') || 'float').toLowerCase();
+            const effects = rawType.split(/[+,\\s]+/).map(s => s.trim()).filter(Boolean);
+            const ampRaw = el.getAttribute('data-motion-amp');
+            const amp = ampRaw !== null && ampRaw !== '' && !Number.isNaN(Number(ampRaw)) ? Number(ampRaw) : 8;
+            let dx = 0;
+            let dy = 0;
+            let hasSize = false;
+            let hasAlpha = false;
+            for (const ef of effects) {
+              if (ef === 'float' || ef === 'bob') dy = -amp;
+              else if (ef === 'slide-y' || ef === 'slide_y') dy = amp;
+              else if (ef === 'slide-x' || ef === 'slide_x' || ef === 'sway') dx = amp;
+              else if (ef === 'pulse' || ef === 'breathe' || ef === 'scale') hasSize = true;
+              else if (ef === 'glow' || ef === 'fade' || ef === 'alpha') hasAlpha = true;
+            }
+            const dxAttr = el.getAttribute('data-motion-dx');
+            const dyAttr = el.getAttribute('data-motion-dy');
+            if (dxAttr !== null && dxAttr !== '' && !Number.isNaN(Number(dxAttr))) dx = Number(dxAttr);
+            if (dyAttr !== null && dyAttr !== '' && !Number.isNaN(Number(dyAttr))) dy = Number(dyAttr);
+            const scaleMinAttr = el.getAttribute('data-motion-scale-min');
+            const scaleMaxAttr = el.getAttribute('data-motion-scale-max') ?? el.getAttribute('data-motion-scale');
+            const scaleMin = scaleMinAttr !== null && scaleMinAttr !== '' && !Number.isNaN(Number(scaleMinAttr)) ? Number(scaleMinAttr) : 1.0;
+            const scaleMax = scaleMaxAttr !== null && scaleMaxAttr !== '' && !Number.isNaN(Number(scaleMaxAttr)) ? Number(scaleMaxAttr) : 1.08;
+            const alphaMinAttr = el.getAttribute('data-motion-min');
+            const alphaMaxAttr = el.getAttribute('data-motion-max');
+            const alphaMin = Math.max(0, Math.min(1, alphaMinAttr !== null && alphaMinAttr !== '' && !Number.isNaN(Number(alphaMinAttr)) ? Number(alphaMinAttr) : 0.35));
+            const alphaMax = Math.max(0, Math.min(1, alphaMaxAttr !== null && alphaMaxAttr !== '' && !Number.isNaN(Number(alphaMaxAttr)) ? Number(alphaMaxAttr) : 1.0));
+            const duration = Math.max(0.1, parseFloat(el.getAttribute('data-motion-duration') || '1.2') || 1.2);
+            const delay = Math.max(0, parseFloat(el.getAttribute('data-motion-delay') || '0') || 0);
+            const easing = (el.getAttribute('data-motion-easing') || 'in_out_sine').trim();
+            const pad = Math.max(0, Math.round(parseFloat(el.getAttribute('data-motion-pad') || '0') || 0));
+            const layer = Math.max(4, Math.min(7, parseInt(el.getAttribute('data-motion-layer') || '5', 10) || 5));
+            const x = Math.max(0, Math.round(r.left) - pad);
+            const y = Math.max(0, Math.round(r.top) - pad);
+            const right = Math.min(${viewW}, Math.round(r.right) + pad);
+            const bottom = Math.min(${viewH}, Math.round(r.bottom) + pad);
+            return {
+              motionId,
+              motionKey: rawKey.replace(/[^a-z0-9_]/gi, '_'),
+              effects: effects.length ? effects : ['float'],
+              dx,
+              dy,
+              hasSize,
+              scaleMin,
+              scaleMax,
+              hasAlpha,
+              alphaMin,
+              alphaMax,
+              duration,
+              delay,
+              easing,
+              layer,
+              domIndex,
+              x,
+              y,
+              w: Math.max(0, right - x),
+              h: Math.max(0, bottom - y),
+            };
+          }).filter(m => m.w > 4 && m.h > 4);
           const dyns = [...document.querySelectorAll('[data-dyn]')].map(el => {
             const r = el.getBoundingClientRect();
             let bg = [${site.backdropColor[0]}, ${site.backdropColor[1]}, ${site.backdropColor[2]}];
@@ -292,11 +421,33 @@ export async function bakeSite(config: ResolvedBakedUiConfig): Promise<SiteBakeR
               h: Math.round(r.height),
             };
           }).filter(d => d.dynId && d.w > 4 && d.h > 4);
-          return { meta, hits, anims, dyns };
+          return { meta, hits, anims, motions, dyns };
         })()
       `);
 
+      // Hide [data-motion] sprites during static state capture so the background PNG has no frozen ghost copy
+      if (info.motions.length > 0) {
+        await cdp.evalJs(`
+          (async () => {
+            for (const el of document.querySelectorAll('[data-motion]')) {
+              el.setAttribute('data-bui-prev-vis', el.style.visibility || '');
+              el.style.visibility = 'hidden';
+            }
+            await new Promise(r => setTimeout(r, 8));
+          })()
+        `);
+      }
       const pngBuf = await cdp.capturePng();
+      if (info.motions.length > 0) {
+        await cdp.evalJs(`
+          (() => {
+            for (const el of document.querySelectorAll('[data-motion]')) {
+              el.style.visibility = el.getAttribute('data-bui-prev-vis') || '';
+              el.removeAttribute('data-bui-prev-vis');
+            }
+          })()
+        `);
+      }
       const outPng = optimizePngBuffer(pngBuf, site.quantize);
       fs.writeFileSync(path.join(texOutDir, `${safeFile}.png`), outPng);
 
@@ -351,6 +502,66 @@ export async function bakeSite(config: ResolvedBakedUiConfig): Promise<SiteBakeR
         if (!place.stateTags.includes(stateTag)) {
           place.stateTags.push(stateTag);
           place.stateKeys.push(stateKey);
+        }
+      }
+
+      const stateMotions: InternalState['stateMotions'] = [];
+      for (const m of info.motions) {
+        if (!motionSprites.has(m.motionKey)) {
+          const texRel = `${texRelBase}/mot_${m.motionKey}`;
+          motionSprites.set(m.motionKey, {
+            motionKey: m.motionKey,
+            motionId: m.motionId,
+            effects: m.effects,
+            dx: m.dx,
+            dy: m.dy,
+            hasSize: m.hasSize,
+            scaleMin: m.scaleMin,
+            scaleMax: m.scaleMax,
+            hasAlpha: m.hasAlpha,
+            alphaMin: m.alphaMin,
+            alphaMax: m.alphaMax,
+            duration: m.duration,
+            delay: m.delay,
+            easing: m.easing,
+            sampleStateKey: stateKey,
+            sampleDomIndex: m.domIndex,
+            clip: { x: m.x, y: m.y, w: m.w, h: m.h },
+            pixelW: m.w * site.texScale,
+            pixelH: m.h * site.texScale,
+            texRel,
+            texPng: `${texRel}.png`,
+            animNames: [],
+          });
+        }
+        const mx = round2(m.x / sourceScale);
+        const my = round2(m.y / sourceScale);
+        const mw = round2(m.w / sourceScale);
+        const mh = round2(m.h / sourceScale);
+        stateMotions.push({
+          motionKey: m.motionKey,
+          xPct: pct(m.x, viewW),
+          yPct: pct(m.y, viewH),
+          wPct: pct(m.w, viewW),
+          hPct: pct(m.h, viewH),
+          layer: m.layer,
+        });
+        const mpKey = `${m.motionKey}@${mx},${my},${mw},${mh}`;
+        let mp = motionPlacements.get(mpKey);
+        if (!mp) {
+          mp = {
+            idx: motionPlacements.size,
+            motionKey: m.motionKey,
+            mx,
+            my,
+            mw,
+            mh,
+            stateKeys: [],
+          };
+          motionPlacements.set(mpKey, mp);
+        }
+        if (!mp.stateKeys.includes(stateKey)) {
+          mp.stateKeys.push(stateKey);
         }
       }
 
@@ -458,6 +669,7 @@ export async function bakeSite(config: ResolvedBakedUiConfig): Promise<SiteBakeR
         buttons,
         dynSlots,
         stateAnims,
+        stateMotions,
       });
     }
 
@@ -510,6 +722,81 @@ export async function bakeSite(config: ResolvedBakedUiConfig): Promise<SiteBakeR
       );
     }
 
+    // Bake transparent RGBA sprites for native 60fps JsonUI [data-motion] animations
+    const motionSpritesArr = [...motionSprites.values()];
+    const motionPlacementsArr = [...motionPlacements.values()];
+    if (motionSpritesArr.length > 0) {
+      await cdp.call('Emulation.setDefaultBackgroundColorOverride', {
+        color: { r: 0, g: 0, b: 0, a: 0 },
+      });
+      try {
+        for (const sprite of motionSpritesArr) {
+          await cdp.evalJs(`
+            (async () => {
+              window.__BAKE__.setStateKey(${JSON.stringify(sprite.sampleStateKey)});
+              if (window.__BAKE__.setAnimFrame) window.__BAKE__.setAnimFrame(0);
+              if (window.__BAKE__.whenReady) await window.__BAKE__.whenReady();
+              let style = document.getElementById('__bui_motion_iso');
+              if (!style) {
+                style = document.createElement('style');
+                style.id = '__bui_motion_iso';
+                style.textContent = [
+                  'html, body { background: transparent !important; background-image: none !important; }',
+                  'body * { visibility: hidden !important; }',
+                  '[data-bui-motion-iso="1"], [data-bui-motion-iso="1"] * { visibility: visible !important; }',
+                ].join('\\n');
+                document.head.appendChild(style);
+              }
+              for (const el of document.querySelectorAll('[data-bui-motion-iso]')) {
+                el.removeAttribute('data-bui-motion-iso');
+              }
+              const list = [...document.querySelectorAll('[data-motion]')];
+              const target = list[${sprite.sampleDomIndex}];
+              if (!target) throw new Error('Motion target element not found for ' + ${JSON.stringify(sprite.motionKey)});
+              target.setAttribute('data-bui-motion-iso', '1');
+              await new Promise(r => setTimeout(r, 16));
+            })()
+          `);
+
+          const clipBuf = await cdp.capturePng({
+            x: sprite.clip.x,
+            y: sprite.clip.y,
+            width: sprite.clip.w,
+            height: sprite.clip.h,
+            scale: 1,
+          });
+          const decoded = decodePng(clipBuf);
+          let hasOpaquePixel = false;
+          for (let i = 3; i < decoded.data.length; i += 4) {
+            if (decoded.data[i] > 0) {
+              hasOpaquePixel = true;
+              break;
+            }
+          }
+          if (!hasOpaquePixel) {
+            throw new Error(
+              `Motion sprite '${sprite.motionKey}' captured as 100% transparent. Ensure the [data-motion] element renders visible pixels.`,
+            );
+          }
+          sprite.pixelW = decoded.width;
+          sprite.pixelH = decoded.height;
+          const finalPng = optimizePngBuffer(clipBuf, site.quantize);
+          fs.writeFileSync(path.join(rpDir, sprite.texPng), finalPng);
+        }
+      } finally {
+        await cdp.evalJs(`
+          (() => {
+            const style = document.getElementById('__bui_motion_iso');
+            if (style) style.remove();
+            for (const el of document.querySelectorAll('[data-bui-motion-iso]')) {
+              el.removeAttribute('data-bui-motion-iso');
+            }
+          })()
+        `).catch(() => {});
+        await cdp.call('Emulation.setDefaultBackgroundColorOverride', {}).catch(() => {});
+      }
+    }
+
     const statesArr = [...visited.values()];
     const boxesArr = [...boxRegistry.values()];
 
@@ -525,6 +812,123 @@ export async function bakeSite(config: ResolvedBakedUiConfig): Promise<SiteBakeR
         reversible: false,
         easing: 'linear',
       };
+    }
+
+    // Build native 60fps interpolated JsonUI animations (offset / size / alpha)
+    const motionAnims: Record<string, unknown> = {};
+    for (const sp of motionSpritesArr) {
+      const k = sp.motionKey;
+      const dur = round2(sp.duration);
+      const delay = round2(sp.delay);
+      const easing = sp.easing;
+
+      if (sp.dx !== 0 || sp.dy !== 0) {
+        const toX: string | number = sp.dx !== 0 ? `${round2((sp.dx / sp.clip.w) * 100)}%` : 0;
+        const toY: string | number = sp.dy !== 0 ? `${round2((sp.dy / sp.clip.h) * 100)}%` : 0;
+        const nameA = `mot_${k}_off_a`;
+        const nameB = `mot_${k}_off_b`;
+        motionAnims[nameA] = {
+          anim_type: 'offset',
+          from: [0, 0],
+          to: [toX, toY],
+          duration: dur,
+          easing,
+          next: `@${ns}.${nameB}`,
+        };
+        motionAnims[nameB] = {
+          anim_type: 'offset',
+          from: [toX, toY],
+          to: [0, 0],
+          duration: dur,
+          easing,
+          next: `@${ns}.${nameA}`,
+        };
+        sp.animNames.push(nameA, nameB);
+        if (delay > 0) {
+          const nameW = `mot_${k}_off_w`;
+          motionAnims[nameW] = {
+            anim_type: 'wait',
+            duration: delay,
+            next: `@${ns}.${nameA}`,
+          };
+          sp.animNames.push(nameW);
+          sp.offsetAnimRef = `@${ns}.${nameW}`;
+        } else {
+          sp.offsetAnimRef = `@${ns}.${nameA}`;
+        }
+      }
+
+      if (sp.hasSize) {
+        const s0 = `${round2(sp.scaleMin * 100)}%`;
+        const s1 = `${round2(sp.scaleMax * 100)}%`;
+        const nameA = `mot_${k}_sz_a`;
+        const nameB = `mot_${k}_sz_b`;
+        motionAnims[nameA] = {
+          anim_type: 'size',
+          from: [s0, s0],
+          to: [s1, s1],
+          duration: dur,
+          easing,
+          next: `@${ns}.${nameB}`,
+        };
+        motionAnims[nameB] = {
+          anim_type: 'size',
+          from: [s1, s1],
+          to: [s0, s0],
+          duration: dur,
+          easing,
+          next: `@${ns}.${nameA}`,
+        };
+        sp.animNames.push(nameA, nameB);
+        if (delay > 0) {
+          const nameW = `mot_${k}_sz_w`;
+          motionAnims[nameW] = {
+            anim_type: 'wait',
+            duration: delay,
+            next: `@${ns}.${nameA}`,
+          };
+          sp.animNames.push(nameW);
+          sp.sizeAnimRef = `@${ns}.${nameW}`;
+        } else {
+          sp.sizeAnimRef = `@${ns}.${nameA}`;
+        }
+      }
+
+      if (sp.hasAlpha) {
+        const aMax = round2(sp.alphaMax);
+        const aMin = round2(sp.alphaMin);
+        const nameA = `mot_${k}_al_a`;
+        const nameB = `mot_${k}_al_b`;
+        motionAnims[nameA] = {
+          anim_type: 'alpha',
+          from: aMax,
+          to: aMin,
+          duration: dur,
+          easing,
+          next: `@${ns}.${nameB}`,
+        };
+        motionAnims[nameB] = {
+          anim_type: 'alpha',
+          from: aMin,
+          to: aMax,
+          duration: dur,
+          easing,
+          next: `@${ns}.${nameA}`,
+        };
+        sp.animNames.push(nameA, nameB);
+        if (delay > 0) {
+          const nameW = `mot_${k}_al_w`;
+          motionAnims[nameW] = {
+            anim_type: 'wait',
+            duration: delay,
+            next: `@${ns}.${nameA}`,
+          };
+          sp.animNames.push(nameW);
+          sp.alphaAnimRef = `@${ns}.${nameW}`;
+        } else {
+          sp.alphaAnimRef = `@${ns}.${nameA}`;
+        }
+      }
     }
 
     const makeStateAnims = (stateAnims: InternalState['stateAnims']) =>
@@ -545,6 +949,62 @@ export async function bakeSite(config: ResolvedBakedUiConfig): Promise<SiteBakeR
             layer: 5,
           },
         };
+      });
+
+    const makeStateMotions = (stateMotions: InternalState['stateMotions']) =>
+      stateMotions.map((m, mi) => {
+        const sp = motionSprites.get(m.motionKey)!;
+        const hasBothOffsetAndSize = Boolean(sp.offsetAnimRef && sp.sizeAnimRef);
+        const spriteHasAnim = Boolean(sp.sizeAnimRef || (!hasBothOffsetAndSize && sp.offsetAnimRef));
+        const spriteControl: Record<string, unknown> = {
+          type: 'image',
+          texture: sp.texRel,
+          keep_ratio: false,
+          anchor_from: 'center',
+          anchor_to: 'center',
+          size: sp.sizeAnimRef ?? ['100%', '100%'],
+          layer: m.layer,
+        };
+        if (spriteHasAnim) {
+          spriteControl.disable_anim_fast_forward = true;
+        }
+        if (!hasBothOffsetAndSize && sp.offsetAnimRef) {
+          spriteControl.offset = sp.offsetAnimRef;
+        }
+        const innerControls: Array<Record<string, unknown>> = hasBothOffsetAndSize
+          ? [
+              {
+                mover: {
+                  type: 'panel',
+                  anchor_from: 'center',
+                  anchor_to: 'center',
+                  size: ['100%', '100%'],
+                  offset: sp.offsetAnimRef,
+                  clips_children: false,
+                  disable_anim_fast_forward: true,
+                  ...(sp.alphaAnimRef ? { propagate_alpha: true } : {}),
+                  controls: [{ sprite: spriteControl }],
+                },
+              },
+            ]
+          : [{ sprite: spriteControl }];
+
+        const wrapper: Record<string, unknown> = {
+          type: 'panel',
+          anchor_from: 'top_left',
+          anchor_to: 'top_left',
+          offset: [m.xPct, m.yPct],
+          size: [m.wPct, m.hPct],
+          clips_children: false,
+          layer: m.layer,
+          controls: innerControls,
+        };
+        if (sp.alphaAnimRef) {
+          wrapper.alpha = sp.alphaAnimRef;
+          wrapper.propagate_alpha = true;
+          wrapper.disable_anim_fast_forward = true;
+        }
+        return { [`motion_${mi}`]: wrapper };
       });
 
     const dynSlotList = [...dynRegistry.values()].sort((a, b) => a.slot - b.slot);
@@ -590,6 +1050,7 @@ export async function bakeSite(config: ResolvedBakedUiConfig): Promise<SiteBakeR
     const uiJson: Record<string, unknown> = {
       namespace: ns,
       ...flipBooks,
+      ...motionAnims,
 
       empty_cell: { type: 'panel', size: [18, 18] },
 
@@ -693,6 +1154,7 @@ export async function bakeSite(config: ResolvedBakedUiConfig): Promise<SiteBakeR
                             },
                           },
                           ...makeStateAnims(s.stateAnims),
+                          ...makeStateMotions(s.stateMotions),
                         ],
                       },
                     })),
@@ -985,6 +1447,7 @@ export async function bakeSite(config: ResolvedBakedUiConfig): Promise<SiteBakeR
                   },
                 },
                 ...makeStateAnims(s.stateAnims),
+                ...makeStateMotions(s.stateMotions),
               ],
             },
           })),
@@ -1085,7 +1548,7 @@ export async function bakeSite(config: ResolvedBakedUiConfig): Promise<SiteBakeR
 
     const statesMap: Record<string, BakedState> = {};
     for (const s of statesArr) {
-      const { stateAnims: _discard, ...pubState } = s;
+      const { stateAnims: _discardAnims, stateMotions: _discardMotions, ...pubState } = s;
       statesMap[s.key] = pubState;
     }
 
@@ -1109,6 +1572,32 @@ export async function bakeSite(config: ResolvedBakedUiConfig): Promise<SiteBakeR
       };
     }
 
+    const motionsMap: Record<string, BakedMotionSpec> = {};
+    for (const sp of motionSpritesArr) {
+      motionsMap[sp.motionKey] = {
+        motionKey: sp.motionKey,
+        motionId: sp.motionId,
+        effects: sp.effects,
+        texture: sp.texRel,
+        texturePng: sp.texPng,
+        width: sp.pixelW,
+        height: sp.pixelH,
+        duration: round2(sp.duration),
+        delay: round2(sp.delay),
+        easing: sp.easing,
+        dx: sp.dx,
+        dy: sp.dy,
+        scaleMin: sp.scaleMin,
+        scaleMax: sp.scaleMax,
+        alphaMin: sp.alphaMin,
+        alphaMax: sp.alphaMax,
+        animNames: sp.animNames,
+        placements: motionPlacementsArr
+          .filter((p) => p.motionKey === sp.motionKey)
+          .map((p) => ({ x: p.mx, y: p.my, w: p.mw, h: p.mh, states: p.stateKeys })),
+      };
+    }
+
     const manifest: BakedSiteManifest = {
       version: 1,
       namespace: ns,
@@ -1122,8 +1611,10 @@ export async function bakeSite(config: ResolvedBakedUiConfig): Promise<SiteBakeR
       hitboxCount: boxesArr.length,
       stateCount: statesArr.length,
       animCount: animSheetsArr.length,
+      motionCount: motionSpritesArr.length,
       dynCount: dynSlotList.length,
       animations: animationsMap,
+      motions: motionsMap,
       states: statesMap,
     };
     fs.writeFileSync(site.manifestOut, JSON.stringify(manifest, null, 2) + '\n');
@@ -1138,6 +1629,9 @@ export async function bakeSite(config: ResolvedBakedUiConfig): Promise<SiteBakeR
     for (const sh of animSheetsArr) {
       totalBytes += fs.statSync(path.join(rpDir, sh.texPng)).size;
     }
+    for (const sp of motionSpritesArr) {
+      totalBytes += fs.statSync(path.join(rpDir, sp.texPng)).size;
+    }
 
     return {
       manifestPath: site.manifestOut,
@@ -1146,6 +1640,7 @@ export async function bakeSite(config: ResolvedBakedUiConfig): Promise<SiteBakeR
       uniquePngs: hashes.size,
       hitboxCount: boxesArr.length,
       animCount: animSheetsArr.length,
+      motionCount: motionSpritesArr.length,
       dynCount: dynSlotList.length,
       totalBytes,
     };
