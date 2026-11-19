@@ -68,7 +68,7 @@ export interface BakedSiteManifest {
   readonly entityId: string;
   readonly routerTag: string;
   readonly invTitleTag: string;
-  readonly viewport: readonly [number, number];
+  readonly viewport: readonly number[];
   readonly sourceScale: number;
   readonly texScale: number;
   readonly initialState: string;
@@ -119,12 +119,12 @@ export interface BakedHudField {
 
 export interface BakedHudManifest {
   readonly version: number;
-  readonly experimental: true;
+  readonly experimental: boolean;
   readonly namespace: string;
-  readonly channel: HudChannel;
+  readonly channel: HudChannel | string;
   readonly hudTag: string;
   readonly hudOffTag: string;
-  readonly viewport: readonly [number, number];
+  readonly viewport: readonly number[];
   readonly scale: number;
   readonly widgetCount: number;
   readonly animCount: number;
