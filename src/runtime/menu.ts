@@ -40,6 +40,8 @@ export interface BakedMenuOptions {
   pvpDodge?: boolean;
   /** Resolves live string values for every `[data-dyn="id"]` present in the current state. */
   resolveDynamicValues?: (player: Player, state: BakedMenuState) => Record<string, string>;
+  /** Resolves live 0..100 percentage values for every `[data-bar="id"]` present in the current state. */
+  resolveBarValues?: (player: Player, state: BakedMenuState) => Record<string, number>;
   /** Called whenever a player clicks a baked button (after `state.bakedKey` advances to `button.nextState`). */
   onButtonClick?: (player: Player, button: BakedButton, state: BakedMenuState) => void;
   /** Called when a `data-special="close"` button is clicked or the menu is explicitly closed. */
@@ -361,7 +363,8 @@ export class BakedMenuManager {
     const c = invOf(entity);
     if (!c) return;
     const dynValues = this.opts.resolveDynamicValues ? this.opts.resolveDynamicValues(player, state) : {};
-    const plan = buildInvSlotPlan(this.manifest, state, dynValues);
+    const barValues = this.opts.resolveBarValues ? this.opts.resolveBarValues(player, state) : {};
+    const plan = buildInvSlotPlan(this.manifest, state, dynValues, barValues);
     const wanted = new Map<number, string>();
     for (const s of plan) wanted.set(s.slot, s.nameTag);
 
@@ -521,7 +524,7 @@ export class BakedMenuManager {
       return;
     }
 
-    if (cur.dynSlots?.length && now % this.dynRefreshTicks === 0) {
+    if ((cur.dynSlots?.length || cur.barSlots?.length) && now % this.dynRefreshTicks === 0) {
       this.syncContainer(menu, state, player);
     }
   }

@@ -58,15 +58,22 @@ maxButtonsPerPage = 25 - (number of globally unique [data-dyn] (dynId, x, y, w, 
 4. Keep formatted text within Bedrock's **255-character** `ItemStack.nameTag` limit and use `fitText(text, maxUnits)` for CJK-aware truncation.
 
 ### Native 60fps Motion Animations (`[data-motion]`)
-- Use `[data-motion="<id>"]` whenever an icon, emblem, badge, aura, or slider moves, breathes, or glows smoothly. Unlike `flip_book`, it stores only **one transparent RGBA PNG** per unique `data-motion-key` and lets Bedrock's native UI engine interpolate at 60fps with zero 2800px width cap and zero chest-slot cost.
+- Use `[data-motion="<id>"]` in either Menus or HUDs whenever an icon, emblem, card, aura, or slider moves, breathes, glows, or enters smoothly. Unlike `flip_book`, it stores only **one transparent RGBA PNG** per unique `data-motion-key` and lets Bedrock's native UI engine interpolate at 60fps with zero 2800px width cap and zero chest-slot cost.
 - Composable effects via `data-motion-type`:
-  - `float` / `bob` (`anim_type: "offset"` vertical), `slide-x` / `sway` (`offset` horizontal), `slide-y` (`offset` vertical)
-  - `pulse` / `breathe` (`anim_type: "size"` centered around the sprite)
-  - `glow` / `fade` (`anim_type: "alpha"` on wrapper panel with `propagate_alpha: true`)
-  - Combine freely with `+`, e.g. `data-motion-type="float+pulse+glow"`.
+  - **Looping**: `float` / `bob` (`offset` vertical), `slide-x` / `sway` (`offset` horizontal), `slide-y` (`offset` vertical), `pulse` / `breathe` (`size`), `glow` / `fade` (`alpha`)
+  - **One-Shot Entrance**: `enter-up`, `enter-down`, `enter-left`, `enter-right`, `enter-fade`, `enter-pop` (delayed entrances hold their starting `from` pose during `data-motion-delay` so there is zero initial flash!)
+  - Combine freely with `+`, e.g. `data-motion-type="enter-up+enter-fade"` or `data-motion-type="float+pulse+glow"`.
 - **Shadows & Glow Padding**: Add `data-motion-pad="12"` (CSS px) when an element uses `box-shadow` or SVG `drop-shadow` so outer glow pixels are included inside the transparent PNG.
-- **Staggered Waves**: Use `data-motion-delay="0.25"` (seconds) to prepend a `wait` step before the seamless ping-pong loop starts.
-- All offset distances (`data-motion-amp`, `data-motion-dx`, `data-motion-dy`) are automatically converted to element-relative `%` units so motion scales proportionally across every Bedrock resolution and GUI scale.
+- **Live Browser Preview**: `baked-ui dev` simulates `[data-motion]` via CSS `@keyframes` right in your browser (`Motion: ON/OFF` toggle).
+
+### Real CSS Button Hover/Press (`data-hit-fx="1"`) & Custom Sounds (`data-sound`)
+- Add `data-hit-fx="1"` to any `[data-hit]` button to bake its real CSS `:hover` and `:active` appearance using CDP `CSS.forcePseudoState`. If `:active` pixels match `:hover`, the texture is deduplicated automatically.
+- Add `data-sound="random.orb" data-sound-pitch="1.25" data-sound-volume="0.8"` to play distinct per-button Bedrock sounds on click.
+
+### Real-Time Progress Bars (`[data-bar]`)
+- Mark the **filled bar element** inside its track with `data-bar="hp" data-bar-dir="left"` (`left`, `right`, `up`, `down`).
+- During bake, `[data-bar]` is hidden for the static track background and isolated into a single transparent RGBA PNG (`bar_<key>.png`).
+- At runtime, pass `resolveBarValues(player, state) => ({ hp: 75 })` (`0..100`) to `BakedMenuManager`. Each unique `[data-bar]` placement uses 1 slot from the shared 25-slot budget (`buttons + dyn + bar <= 25`) and renders via 20 clean `clips_children: true` percentage panels (`5%` increments, zero gradient squishing).
 
 ### Flipbook Animations (`[data-anim]`)
 - Horizontal sheet width is capped at `maxSheetWidth` (default `2800px`). If `w * texScale * frames > 2800`, frames are automatically downscaled.

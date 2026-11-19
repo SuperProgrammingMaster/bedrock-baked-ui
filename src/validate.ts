@@ -13,7 +13,9 @@ export function validateSiteBake(config: ResolvedBakedUiConfig): ValidationResul
   const stats = {
     stateCount: 0,
     hitboxCount: 0,
+    hitFxCount: 0,
     dynCount: 0,
+    barCount: 0,
     animCount: 0,
     motionCount: 0,
     maxButtonsPerState: 0,
@@ -32,10 +34,12 @@ export function validateSiteBake(config: ResolvedBakedUiConfig): ValidationResul
   const manifest = JSON.parse(fs.readFileSync(site.manifestOut, 'utf8')) as BakedSiteManifest;
   stats.stateCount = manifest.stateCount ?? Object.keys(manifest.states ?? {}).length;
   stats.hitboxCount = manifest.hitboxCount ?? 0;
+  stats.hitFxCount = manifest.hitFxCount ?? 0;
   stats.dynCount = manifest.dynCount ?? 0;
+  stats.barCount = manifest.barCount ?? Object.keys(manifest.bars ?? {}).length;
   stats.animCount = manifest.animCount ?? Object.keys(manifest.animations ?? {}).length;
   stats.motionCount = manifest.motionCount ?? Object.keys(manifest.motions ?? {}).length;
-  stats.maxSlotBudget = Math.max(0, 25 - stats.dynCount);
+  stats.maxSlotBudget = Math.max(0, 25 - stats.dynCount - stats.barCount);
 
   if (stats.stateCount <= 0) {
     issues.push({ level: 'error', code: 'NO_STATES', message: 'Manifest contains 0 states.' });
@@ -73,12 +77,23 @@ export function validateSiteBake(config: ResolvedBakedUiConfig): ValidationResul
     if (st.buttons.length > stats.maxButtonsPerState) {
       stats.maxButtonsPerState = st.buttons.length;
     }
-    if (st.buttons.length + stats.dynCount > 25) {
+    if (st.buttons.length + stats.dynCount + stats.barCount > 25) {
       issues.push({
         level: 'error',
         code: 'SLOT_OVERFLOW',
-        message: `State '${st.key}' uses ${st.buttons.length} buttons + ${stats.dynCount} global dyn slots = ${st.buttons.length + stats.dynCount} > 25.`,
+        message: `State '${st.key}' uses ${st.buttons.length} buttons + ${stats.dynCount} dyn + ${stats.barCount} bar slots = ${st.buttons.length + stats.dynCount + stats.barCount} > 25.`,
       });
+    }
+    for (const btn of st.buttons) {
+      for (const rel of [btn.hitFxHover, btn.hitFxPress]) {
+        if (rel && !fs.existsSync(path.join(rpDir, rel))) {
+          issues.push({
+            level: 'error',
+            code: 'MISSING_HITFX_PNG',
+            message: `Missing button hover/press texture for '${btn.hitId}': ${rel}`,
+          });
+        }
+      }
     }
 
     const pngPath = path.join(rpDir, st.texturePng || `${st.texture}.png`);
@@ -150,6 +165,23 @@ export function validateSiteBake(config: ResolvedBakedUiConfig): ValidationResul
           level: 'error',
           code: 'INVALID_MOTION_PNG',
           message: `Motion sprite '${mot.motionKey}' PNG is invalid: ${(err as Error).message}`,
+        });
+      }
+    }
+  }
+
+  for (const bar of Object.values(manifest.bars ?? {})) {
+    const pngPath = path.join(rpDir, bar.texturePng);
+    if (!fs.existsSync(pngPath)) {
+      issues.push({ level: 'error', code: 'MISSING_BAR_PNG', message: `Missing progress bar PNG: ${pngPath}` });
+    } else {
+      try {
+        readPngDimensions(fs.readFileSync(pngPath));
+      } catch (err) {
+        issues.push({
+          level: 'error',
+          code: 'INVALID_BAR_PNG',
+          message: `Progress bar '${bar.barKey}' PNG is invalid: ${(err as Error).message}`,
         });
       }
     }

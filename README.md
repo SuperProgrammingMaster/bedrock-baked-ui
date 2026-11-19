@@ -59,7 +59,10 @@ Writing rich Minecraft Bedrock UIs directly in **JsonUI** (`ui/chest_screen.json
 - **Zero-flicker Fullscreen Menus (`baked-ui bake`)**: Uses an invisible, zero-collision 27-slot container entity (`chest_screen.json` + `pocket_containers.json`) so clicking buttons updates screens and dynamic text **in-place** without closing or reopening the UI.
 - **`ActionFormData` Fallback (`server_form.json`)**: Automatically emitted alongside Entity Inventory UI for chat commands or fallback environments.
 - **HiDPI Static Screens + Pure-JS PNG Quantization**: Renders crisp `2x`/`3x` screenshots using your system Chrome/Edge via raw CDP and shrinks opaque PNGs with a built-in median-cut 256-color quantizer.
-- **Native 60fps JsonUI Motions (`[data-motion]`)**: Extracts clean transparent RGBA sprites (with ghost-free static backgrounds) and compiles chained Bedrock native `offset`, `size`, `alpha`, and `wait` animations for silky 60fps floating, pulsing, glowing, and sliding elements with zero slot cost.
+- **Real CSS `:hover` & `:active` Button States (`data-hit-fx="1"`)**: Forces pseudo-states via CDP to bake genuine HTML/CSS hover and pressed button textures directly into JsonUI (`$hover_tex` / `$press_tex`) alongside per-button custom sounds (`data-sound`).
+- **Native 60fps JsonUI Motions (`[data-motion]`)**: Extracts clean transparent RGBA sprites (with ghost-free static backgrounds) and compiles chained Bedrock native `offset`, `size`, `alpha`, and `wait` animations for both looping motions (`float`, `pulse`, `glow`, `slide-x`) and staggered one-shot entrances (`enter-up`, `enter-fade`, `enter-pop`) in Menus & HUDs, with live CSS preview in `baked-ui dev`.
+- **Real-Time Progress Bars (`[data-bar]`)**: Renders live server `0..100` percentages in 20 smooth 5% steps over your custom HTML/CSS gradient bar textures (`left|right|up|down`).
+- **One-Click `.mcaddon` Packaging (`baked-ui pack`)**: Pure-Node POSIX ZIP packager + `dev --watch --auto-bake` live reload + full `init` manifests.
 - **`flip_book` SVG/Canvas/CSS Animations (`[data-anim]`)**: Captures seamless loop frames and stitches horizontal spritesheets + JsonUI `flip_book` bindings automatically in pure Node.js.
 - **Live Server-Driven Text (`[data-dyn]`)**: Samples parent solid background colors to mask placeholder text and overlays live `ItemStack.nameTag` values directly in JsonUI.
 - **Behavior Pack Runtime SDK (`bedrock-baked-ui/runtime`)**: Drop-in `BakedMenuManager` with early-execution safety, PvP auto-dodge, melee hit pass-through, tick-late marker sweep safety, and orphan entity cleanup.
@@ -165,14 +168,17 @@ window.__BAKE__ = {
 | Attribute | Target | Description |
 | --- | --- | --- |
 | `data-hit="<id>"` | Menu | Interactive button hitbox (`>= 6x6px`). |
+| `data-hit-fx="1"` | Menu | Captures real CSS `:hover` & `:active` styles for this button (`data-hit-fx-key` to share across states). |
+| `data-sound="<id>"` | Menu | Custom Bedrock sound played on button click (`data-sound-pitch`, `data-sound-volume`). |
 | `data-label="<text>"` | Menu | Short label attached to the slot marker / ActionForm button. |
 | `data-special="close"` | Menu | Maps click to `button.menu_exit` and closes the menu. |
 | `data-dyn="<id>"` | Menu | Live server-updated text slot. Ancestor must have opaque `background-color` (alpha > 0.85). |
 | `data-dyn-scale="0.95"` | Menu / HUD | JsonUI `font_scale_factor`. |
 | `data-dyn-align="left"` | Menu / HUD | JsonUI `text_alignment` (`left` \| `center` \| `right`). |
+| `data-bar="<id>"` | Menu | Real-time `0..100` progress bar clipped natively via `#clip_ratio` (`data-bar-dir="left\|right\|up\|down"`). |
 | `data-anim="<id>"` | Menu / HUD | Animated region baked into a `flip_book` spritesheet (`data-frames`, `data-fps`, optional `data-anim-key`). |
-| `data-motion="<id>"` | Menu | Smooth 60fps native JsonUI interpolated sprite (`data-motion-type="float\|pulse\|glow\|slide-x\|slide-y"`, combinable with `+`, e.g. `float+pulse+glow`). |
-| `data-motion-*` | Menu | Motion tuning: `data-motion-amp` (px), `data-motion-scale` (`1.08`), `data-motion-min`/`max` (`0.35`..`1.0`), `data-motion-duration` (sec), `data-motion-delay` (sec), `data-motion-easing` (`in_out_sine`), `data-motion-pad` (px for shadows), `data-motion-key`. |
+| `data-motion="<id>"` | Menu / HUD | Smooth 60fps native JsonUI sprite (`float\|pulse\|glow\|slide-x\|slide-y\|enter-up\|enter-down\|enter-left\|enter-right\|enter-fade\|enter-pop`, combinable with `+`). |
+| `data-motion-*` | Menu / HUD | Motion tuning: `data-motion-amp` (px), `data-motion-scale` (`1.08`), `data-motion-min`/`max` (`0.35`..`1.0`), `data-motion-duration` (sec), `data-motion-delay` (sec), `data-motion-easing` (`in_out_sine`), `data-motion-pad` (px for shadows), `data-motion-key`. |
 | `data-hud-widget="<id>"` | HUD | Transparent HUD card captured cleanly without placeholder text. |
 | `data-hud-dyn="<id>"` | HUD | Fixed-byte ASCII field (`data-dyn-len="20"`) or single UTF-8/color tail (`data-dyn-tail="1"`). |
 
@@ -197,10 +203,11 @@ See [docs/guide.md](docs/guide.md) for the complete architecture reference, trou
 
 ```bash
 baked-ui init [dir] [--namespace <ns>] [--entity <ns:name>] [--theme gold|classic|neon|minimal] [--no-hud] [--force]
-baked-ui dev [--config <path>] [--port 4173] [--hud]
+baked-ui dev [--config <path>] [--port 4173] [--hud] [--watch] [--auto-bake]
 baked-ui bake [--config <path>] [--scale 1..3] [--no-quantize]
 baked-ui bake-hud [--config <path>] [--scale 1..4] [--channel subtitle|title]
 baked-ui validate [--config <path>]
+baked-ui pack [--config <path>] [--out <path>] [--no-bake] [--no-bundle]
 ```
 
 ## Community

@@ -18,6 +18,11 @@ export interface BakedButton {
   readonly hPct: string;
   readonly nextState: string;
   readonly special: string | null;
+  readonly hitFxHover?: string;
+  readonly hitFxPress?: string;
+  readonly sound?: string;
+  readonly soundPitch?: number;
+  readonly soundVolume?: number;
 }
 
 export interface BakedDynSlot {
@@ -25,6 +30,33 @@ export interface BakedDynSlot {
   readonly dynId: string;
   readonly maskTag: string;
   readonly tone: string;
+}
+
+export type BarDirection = 'left' | 'right' | 'up' | 'down';
+
+export interface BakedBarSlot {
+  readonly slot: number;
+  readonly barId: string;
+  readonly barKey: string;
+  readonly barTag: string;
+  readonly direction: BarDirection | string;
+}
+
+export interface BakedBarSpec {
+  readonly barKey: string;
+  readonly barId: string;
+  readonly slot: number;
+  readonly barTag: string;
+  readonly direction: BarDirection | string;
+  readonly texture: string;
+  readonly texturePng: string;
+  readonly width: number;
+  readonly height: number;
+  readonly xPct: string;
+  readonly yPct: string;
+  readonly wPct: string;
+  readonly hPct: string;
+  readonly states: readonly string[];
 }
 
 export interface BakedState {
@@ -37,6 +69,7 @@ export interface BakedState {
   readonly title: string;
   readonly buttons: readonly BakedButton[];
   readonly dynSlots?: readonly BakedDynSlot[];
+  readonly barSlots?: readonly BakedBarSlot[];
 }
 
 export interface BakedAnimationPlacement {
@@ -136,12 +169,15 @@ export interface BakedSiteManifest {
   readonly texScale: number;
   readonly initialState: string;
   readonly hitboxCount: number;
+  readonly hitFxCount?: number;
   readonly stateCount: number;
   readonly animCount: number;
   readonly motionCount?: number;
   readonly dynCount: number;
+  readonly barCount?: number;
   readonly animations: Record<string, BakedAnimationSpec>;
   readonly motions?: Record<string, BakedMotionSpec>;
+  readonly bars?: Record<string, BakedBarSpec>;
   readonly states: Record<string, BakedState>;
 }
 
@@ -174,6 +210,24 @@ export interface BakedHudAnim {
   readonly hPct: string;
 }
 
+export interface BakedHudMotion {
+  readonly motionKey: string;
+  readonly motionId: string;
+  readonly effects: readonly string[];
+  readonly texture: string;
+  readonly texturePng: string;
+  readonly width: number;
+  readonly height: number;
+  readonly duration: number;
+  readonly delay: number;
+  readonly easing: MotionEasing | string;
+  readonly animNames: readonly string[];
+  readonly xPct: string;
+  readonly yPct: string;
+  readonly wPct: string;
+  readonly hPct: string;
+}
+
 export interface BakedHudField {
   readonly dynId: string;
   readonly start: number;
@@ -193,10 +247,12 @@ export interface BakedHudManifest {
   readonly scale: number;
   readonly widgetCount: number;
   readonly animCount: number;
+  readonly motionCount?: number;
   readonly dynCount: number;
   readonly fixedByteLen: number;
   readonly widgets: readonly BakedHudWidget[];
   readonly animations: readonly BakedHudAnim[];
+  readonly motions?: readonly BakedHudMotion[];
   readonly dynFields: readonly BakedHudField[];
 }
 
@@ -318,9 +374,11 @@ export interface SiteBakeResult {
   stateCount: number;
   uniquePngs: number;
   hitboxCount: number;
+  hitFxCount: number;
   animCount: number;
   motionCount: number;
   dynCount: number;
+  barCount: number;
   totalBytes: number;
 }
 
@@ -329,6 +387,7 @@ export interface HudBakeResult {
   manifest: BakedHudManifest;
   widgetCount: number;
   animCount: number;
+  motionCount: number;
   dynCount: number;
 }
 
@@ -344,7 +403,9 @@ export interface ValidationResult {
   stats: {
     stateCount: number;
     hitboxCount: number;
+    hitFxCount: number;
     dynCount: number;
+    barCount: number;
     animCount: number;
     motionCount: number;
     maxButtonsPerState: number;

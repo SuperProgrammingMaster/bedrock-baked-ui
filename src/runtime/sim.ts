@@ -1,7 +1,7 @@
 // Pure TypeScript runtime helpers for bedrock-baked-ui (zero @minecraft/* and zero Node.js imports).
 // Safe to import in both Minecraft Bedrock Behavior Packs and Node.js unit tests.
 
-import type { BakedButton, BakedDynSlot, BakedSiteManifest, BakedState } from '../types.js';
+import type { BakedBarSlot, BakedButton, BakedDynSlot, BakedSiteManifest, BakedState } from '../types.js';
 
 export const MENU_MARKER_ITEM = 'minecraft:paper';
 
@@ -22,10 +22,10 @@ export interface ActionFormSpec {
   buttons: Array<{ text: string; action: BakedButton }>;
 }
 
-/** Checks whether an item nameTag starts with a baked-UI hidden marker (`§s§00`, `§h§00`, `§9§0`). */
+/** Checks whether an item nameTag starts with a baked-UI hidden marker (`§s§00`, `§h§00`, `§9§0`, `§b§0`). */
 export function isBakedMarkerTag(nameTag: string | undefined): boolean {
   if (!nameTag) return false;
-  return /^§[sh9]§\d(§\d)?/.test(nameTag);
+  return /^§[sh9b]§\d(§\d)?/.test(nameTag);
 }
 
 /** Resolves a route string (exact state key or substring/URL match) to a valid manifest state key. */
@@ -71,17 +71,26 @@ export function formatDynTag(spec: BakedDynSlot, text: string): string {
   return `${spec.maskTag}§r${text}`;
 }
 
+/** Formats a progress bar slot item nameTag as a 20-step (5%) tag (`§b§00`..`§b§20`). */
+export function formatBarTag(spec: BakedBarSlot, percent: number): string {
+  const clamped = Number.isFinite(percent) ? Math.max(0, Math.min(100, percent)) : 0;
+  const step = clamped <= 0 ? 0 : Math.max(1, Math.min(20, Math.round(clamped / 5)));
+  const prefix = spec.barTag || '§b§';
+  return `${prefix}${String(step).padStart(2, '0')}`;
+}
+
 /**
  * Builds the 27-slot container item plan for the current baked state:
  * - Slot 0: empty (avoids client first-slot interference)
  * - Slot 1: state screenshot marker (`§s§XX`)
  * - Slots 2..(2+N-1): button hitbox markers (`§h§XX<label>`)
- * - Slots 26..downward: dynamic live text slots (`§9§V§r<text>`)
+ * - Slots 26..downward: dynamic live text slots (`§9§V§r<text>`) and progress bar slots (`§b§0<0..100>`)
  */
 export function buildInvSlotPlan(
   manifest: BakedSiteManifest,
   state: BakedMenuState,
   dynValues: Record<string, string> = {},
+  barValues: Record<string, number> = {},
 ): InvSlotSpec[] {
   const cur = getBakedState(manifest, state);
   const out: InvSlotSpec[] = [{ slot: 1, nameTag: cur.tag }];
@@ -94,6 +103,12 @@ export function buildInvSlotPlan(
       // Enforce Bedrock's 255-char ItemStack.nameTag limit safely
       const safe = raw.length > 240 ? raw.slice(0, 240) : raw;
       out.push({ slot: ds.slot, nameTag: formatDynTag(ds, safe) });
+    }
+  }
+  if (cur.barSlots?.length) {
+    for (const bs of cur.barSlots) {
+      const pctVal = barValues[bs.barId] ?? 0;
+      out.push({ slot: bs.slot, nameTag: formatBarTag(bs, pctVal) });
     }
   }
   return out;

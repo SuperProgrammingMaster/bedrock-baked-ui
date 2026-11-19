@@ -11,11 +11,18 @@ import type {
   BakedHudAnim,
   BakedHudField,
   BakedHudManifest,
+  BakedHudMotion,
   BakedHudWidget,
   HudBakeResult,
   ResolvedBakedUiConfig,
 } from '../types.js';
 import { findBrowser, launchCdp } from '../core/browser.js';
+import {
+  buildMeasureMotionsSnippet,
+  buildMotionControl,
+  compileMotionAnimations,
+  type RawMotionElement,
+} from '../core/motion.js';
 import {
   decodePng,
   encodeRgbaPng,
@@ -103,9 +110,12 @@ export async function bakeHud(config: ResolvedBakedUiConfig): Promise<HudBakeRes
     await cdp.call('Page.navigate', { url: pathToFileURL(hud.entry).href });
     await loaded;
 
+    const measureMotionsJs = buildMeasureMotionsSnippet(viewW, viewH);
+
     const info = await cdp.evalJs<{
       widgets: RawHudWidget[];
       anims: RawHudAnim[];
+      motions: RawMotionElement[];
       dyns: RawHudDyn[];
     }>(`
       (async () => {
@@ -137,6 +147,7 @@ export async function bakeHud(config: ResolvedBakedUiConfig): Promise<HudBakeRes
             h: Math.round(r.height),
           };
         }).filter(a => a.w > 4 && a.h > 4);
+        const motions = ${measureMotionsJs};
         const dyns = [...document.querySelectorAll('[data-hud-dyn]')].map(el => {
           const r = el.getBoundingClientRect();
           const cs = getComputedStyle(el);
@@ -155,15 +166,16 @@ export async function bakeHud(config: ResolvedBakedUiConfig): Promise<HudBakeRes
             h: Math.round(r.height),
           };
         }).filter(d => d.dynId && d.w > 4 && d.h > 4);
-        return { widgets, anims, dyns };
+        return { widgets, anims, motions, dyns };
       })()
     `);
 
-    // Hide dynamic placeholder text & animations while capturing clean widget chrome PNGs
+    // Hide dynamic placeholder text, flip_book animations & [data-motion] sprites while capturing clean widget chrome PNGs
     await cdp.evalJs(`
       (() => {
         document.querySelectorAll('[data-hud-dyn]').forEach(el => { el.style.visibility = 'hidden'; });
         document.querySelectorAll('[data-anim]').forEach(el => { el.style.visibility = 'hidden'; });
+        document.querySelectorAll('[data-motion]').forEach(el => { el.style.visibility = 'hidden'; });
       })()
     `);
 
@@ -250,6 +262,95 @@ export async function bakeHud(config: ResolvedBakedUiConfig): Promise<HudBakeRes
       }
     }
 
+    // Capture transparent 60fps [data-motion] sprites independently
+    const motionMeta: BakedHudMotion[] = [];
+    const motionDefs: Record<string, unknown> = {};
+    const motionControls: Array<Record<string, unknown>> = [];
+    if (info.motions.length > 0) {
+      await cdp.evalJs(`
+        (() => {
+          let style = document.getElementById('__bui_hud_mot_iso');
+          if (!style) {
+            style = document.createElement('style');
+            style.id = '__bui_hud_mot_iso';
+            style.textContent = [
+              'html, body { background: transparent !important; background-image: none !important; }',
+              'body * { visibility: hidden !important; }',
+              '[data-bui-iso="1"], [data-bui-iso="1"] * { visibility: visible !important; }',
+            ].join('\\n');
+            document.head.appendChild(style);
+          }
+        })()
+      `);
+
+      const seenKeys = new Map<string, { texRel: string; texPng: string; width: number; height: number; refs: ReturnType<typeof compileMotionAnimations> }>();
+      for (let i = 0; i < info.motions.length; i++) {
+        const m = info.motions[i];
+        let entry = seenKeys.get(m.motionKey);
+        if (!entry) {
+          await cdp.evalJs(`
+            (async () => {
+              for (const el of document.querySelectorAll('[data-bui-iso]')) el.removeAttribute('data-bui-iso');
+              const list = [...document.querySelectorAll('[data-motion]')];
+              const target = list[${m.domIndex}];
+              if (!target) throw new Error('HUD motion target not found for ' + ${JSON.stringify(m.motionKey)});
+              target.setAttribute('data-bui-iso', '1');
+              await new Promise(r => setTimeout(r, 12));
+            })()
+          `);
+          const shotBuf = await cdp.capturePng({ x: m.x, y: m.y, width: m.w, height: m.h, scale: 1 });
+          const decoded = decodePng(shotBuf);
+          const texRel = `${texRelBase}/mot_${m.motionKey}`;
+          const texPng = `${texRel}.png`;
+          fs.writeFileSync(path.join(rpDir, texPng), shotBuf);
+
+          const refs = compileMotionAnimations(hudNs, {
+            ...m,
+            clip: { w: m.w, h: m.h },
+          });
+          Object.assign(motionDefs, refs.defs);
+          entry = { texRel, texPng, width: decoded.width, height: decoded.height, refs };
+          seenKeys.set(m.motionKey, entry);
+        }
+
+        const xPct = pct(m.x, viewW);
+        const yPct = pct(m.y, viewH);
+        const wPct = pct(m.w, viewW);
+        const hPct = pct(m.h, viewH);
+        motionControls.push(
+          buildMotionControl({
+            controlName: `motion_${i}`,
+            texRel: entry.texRel,
+            xPct,
+            yPct,
+            wPct,
+            hPct,
+            layer: 18,
+            offsetAnimRef: entry.refs.offsetAnimRef,
+            sizeAnimRef: entry.refs.sizeAnimRef,
+            alphaAnimRef: entry.refs.alphaAnimRef,
+          }),
+        );
+        motionMeta.push({
+          motionKey: m.motionKey,
+          motionId: m.motionId,
+          effects: m.effects,
+          texture: entry.texRel,
+          texturePng: entry.texPng,
+          width: entry.width,
+          height: entry.height,
+          duration: m.duration,
+          delay: m.delay,
+          easing: m.easing,
+          animNames: entry.refs.animNames,
+          xPct,
+          yPct,
+          wPct,
+          hPct,
+        });
+      }
+    }
+
     // Build fixed-width ASCII byte slices + optional UTF-8 tail field
     const fixedDyns = info.dyns.filter((d) => !d.tail);
     const tailDyns = info.dyns.filter((d) => d.tail);
@@ -325,6 +426,7 @@ export async function bakeHud(config: ResolvedBakedUiConfig): Promise<HudBakeRes
     const hudUiJson = {
       namespace: hudNs,
       ...flipBooks,
+      ...motionDefs,
 
       root: {
         type: 'panel',
@@ -372,6 +474,7 @@ export async function bakeHud(config: ResolvedBakedUiConfig): Promise<HudBakeRes
                     layer: 17,
                   },
                 })),
+                ...motionControls,
                 ...dynSpecs.map((d) => ({
                   [`dyn_${d.dynId}`]: {
                     type: 'label',
@@ -451,10 +554,12 @@ export async function bakeHud(config: ResolvedBakedUiConfig): Promise<HudBakeRes
       scale: hud.texScale,
       widgetCount: widgetMeta.length,
       animCount: animMeta.length,
+      motionCount: motionMeta.length,
       dynCount: dynSpecs.length,
       fixedByteLen: cursor,
       widgets: widgetMeta,
       animations: animMeta,
+      motions: motionMeta,
       dynFields: dynSpecs.map(({ dynId, start, end, len, tail }) => ({ dynId, start, end, len, tail })),
     };
     fs.writeFileSync(hud.manifestOut, JSON.stringify(manifest, null, 2) + '\n');
@@ -464,6 +569,7 @@ export async function bakeHud(config: ResolvedBakedUiConfig): Promise<HudBakeRes
       manifest,
       widgetCount: widgetMeta.length,
       animCount: animMeta.length,
+      motionCount: motionMeta.length,
       dynCount: dynSpecs.length,
     };
   } finally {

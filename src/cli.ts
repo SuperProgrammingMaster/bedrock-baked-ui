@@ -7,6 +7,7 @@ import { bakeHud } from './bakers/hud.js';
 import { bakeSite } from './bakers/site.js';
 import { DEFAULT_CONFIG_FILENAME, loadConfig } from './config.js';
 import { scaffoldProject } from './init.js';
+import { packAddon } from './pack.js';
 import { startPreviewServer } from './preview.js';
 import { validateSiteBake } from './validate.js';
 
@@ -14,11 +15,12 @@ const HELP = `
 bedrock-baked-ui: HTML/CSS/Canvas to Minecraft Bedrock JsonUI Compiler
 
 Usage:
-  baked-ui init [dir] [options]       Scaffold config, starter HTML UI, and BP example
-  baked-ui dev [options]              Start local live preview with hitbox/budget inspector
+  baked-ui init [dir] [options]       Scaffold config, manifests, starter HTML UI, and BP entry
+  baked-ui dev [options]              Start local live preview with inspector & 60fps motion sim
   baked-ui bake [options]             Compile fullscreen interactive menu -> RP + BP manifest
   baked-ui bake-hud [options]         [Experimental] Compile transparent HUD -> RP + BP manifest
   baked-ui validate [options]         Validate baked textures, JsonUI, and Bedrock limits
+  baked-ui pack [options]             Bake, validate, bundle BP, and export a .mcaddon archive
 
 Options:
   -c, --config <path>                 Path to ${DEFAULT_CONFIG_FILENAME} (default: cwd)
@@ -29,9 +31,14 @@ Options:
   --force                             (init) Overwrite existing starter files
   --port <num>                        (dev) Preview server port (default: 4173)
   --hud                               (dev) Preview experimental HUD instead of menu
+  --watch                             (dev) Auto-reload preview browser when HTML/CSS/JS changes
+  --auto-bake                         (dev --watch) Automatically re-bake RP on every file save
   --scale <1..4>                      (bake / bake-hud) Override HiDPI texture scale
   --no-quantize                       (bake) Disable 256-color PNG quantization
   --channel <subtitle|title>          (bake-hud) Override HUD payload transport channel
+  --out <path>                        (pack) Output .mcaddon file path (default: dist/<ns>.mcaddon)
+  --no-bake                           (pack) Skip baking before packaging
+  --no-bundle                         (pack) Skip bundling bp/src/main.ts with esbuild
   -h, --help                          Show this help message
 `.trim();
 
@@ -106,9 +113,20 @@ async function main(): Promise<void> {
   if (cmd === 'dev' || cmd === 'preview') {
     const port = typeof flags.port === 'string' ? Number(flags.port) : 4173;
     const mode = flags.hud === true ? 'hud' : 'site';
-    const srv = await startPreviewServer(config, { port, mode });
-    console.log(`[baked-ui] Preview (${mode}) running at ${srv.url}`);
-    console.log('[baked-ui] Press Shift+I in browser to toggle hitbox / dyn / anim inspector.');
+    const watch = flags.watch === true || flags['auto-bake'] === true;
+    const autoBake = flags['auto-bake'] === true;
+    const srv = await startPreviewServer(config, {
+      port,
+      mode,
+      watch,
+      autoBake,
+      onAutoBake: ({ ok, durationMs, error }) => {
+        if (ok) console.log(`[baked-ui] Auto-baked in ${(durationMs / 1000).toFixed(2)}s`);
+        else console.error(`[baked-ui] Auto-bake failed: ${error}`);
+      },
+    });
+    console.log(`[baked-ui] Preview (${mode}${watch ? ', watch' : ''}${autoBake ? '+auto-bake' : ''}) running at ${srv.url}`);
+    console.log('[baked-ui] Press Shift+I in browser to toggle hitbox / dyn / bar / anim / motion inspector.');
     process.on('SIGINT', async () => {
       await srv.close();
       process.exit(0);
@@ -126,7 +144,8 @@ async function main(): Promise<void> {
     const res = await bakeSite(config);
     console.log(
       `[baked-ui] Baked ${res.stateCount} states (${res.uniquePngs} unique PNGs, ${fmtKb(res.totalBytes)}), ` +
-        `${res.hitboxCount} hitboxes, ${res.animCount} flip_books, ${res.motionCount} 60fps motions, ${res.dynCount} dyn slots.`,
+        `${res.hitboxCount} hitboxes (${res.hitFxCount} CSS fx), ${res.animCount} flip_books, ` +
+        `${res.motionCount} 60fps motions, ${res.dynCount} dyn slots, ${res.barCount} bars.`,
     );
     console.log(`[baked-ui] Manifest -> ${res.manifestPath}`);
 
@@ -149,7 +168,7 @@ async function main(): Promise<void> {
     console.log(`[baked-ui] [experimental] Baking transparent HUD (channel=${config.hud.channel})...`);
     const res = await bakeHud(config);
     console.log(
-      `[baked-ui] Baked ${res.widgetCount} widgets, ${res.animCount} flip_books, ${res.dynCount} live HUD fields.`,
+      `[baked-ui] Baked ${res.widgetCount} widgets, ${res.animCount} flip_books, ${res.motionCount} 60fps motions, ${res.dynCount} live HUD fields.`,
     );
     console.log(`[baked-ui] Manifest -> ${res.manifestPath}`);
     return;
@@ -158,8 +177,8 @@ async function main(): Promise<void> {
   if (cmd === 'validate') {
     const report = validateSiteBake(config);
     console.log(
-      `[baked-ui] Stats: ${report.stats.stateCount} states, ${report.stats.hitboxCount} hitboxes, ` +
-        `${report.stats.dynCount} dyn slots (max ${report.stats.maxButtonsPerState}/${report.stats.maxSlotBudget} buttons/page), ` +
+      `[baked-ui] Stats: ${report.stats.stateCount} states, ${report.stats.hitboxCount} hitboxes (${report.stats.hitFxCount} CSS fx), ` +
+        `${report.stats.dynCount} dyn + ${report.stats.barCount} bar slots (max ${report.stats.maxButtonsPerState}/${report.stats.maxSlotBudget} buttons/page), ` +
         `${report.stats.animCount} flip_books, ${report.stats.motionCount} 60fps motions.`,
     );
     for (const issue of report.issues) {
@@ -172,6 +191,18 @@ async function main(): Promise<void> {
     } else {
       console.log('[baked-ui] Validation passed.');
     }
+    return;
+  }
+
+  if (cmd === 'pack') {
+    const res = await packAddon(config, {
+      outPath: typeof flags.out === 'string' ? flags.out : undefined,
+      skipBake: flags.bake === false,
+      skipBundle: flags.bundle === false,
+    });
+    console.log(
+      `[baked-ui] Packed ${res.outPath} (${res.entries} entries, ${fmtKb(res.bytes)}${res.bundledScript ? ', BP bundled' : ''}).`,
+    );
     return;
   }
 

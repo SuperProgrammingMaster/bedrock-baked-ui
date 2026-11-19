@@ -1,5 +1,7 @@
 // Automated HTML/CSS/Canvas -> Minecraft Bedrock JsonUI + Entity Inventory UI Compiler.
 // Zero Python/Pillow, zero Puppeteer/Playwright: uses system Chrome/Edge via CDP and pure-Node PNG tools.
+// Supports [data-hit] (+ CSS :hover/:active via data-hit-fx + data-sound), [data-dyn], [data-bar],
+// [data-anim] (flip_book), and [data-motion] (native 60fps offset/size/alpha/enter animations).
 
 import crypto from 'node:crypto';
 import fs from 'node:fs';
@@ -8,16 +10,25 @@ import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import type {
   BakedAnimationSpec,
+  BakedBarSlot,
+  BakedBarSpec,
   BakedButton,
   BakedDynSlot,
   BakedMotionSpec,
   BakedSiteManifest,
   BakedState,
+  BarDirection,
   ResolvedBakedUiConfig,
   SiteBakeResult,
 } from '../types.js';
 import { findBrowser, launchCdp } from '../core/browser.js';
 import { writeMenuEntityFiles } from '../core/entity.js';
+import {
+  buildMeasureMotionsSnippet,
+  buildMotionControl,
+  compileMotionAnimations,
+  type RawMotionElement,
+} from '../core/motion.js';
 import {
   decodePng,
   encodeRgbaPng,
@@ -37,6 +48,12 @@ interface RawHit {
   hitId: string;
   label: string;
   special: string | null;
+  hitFx: boolean;
+  hitFxKey: string | null;
+  sound: string | null;
+  soundPitch: number | null;
+  soundVolume: number | null;
+  domIndex: number;
   x: number;
   y: number;
   w: number;
@@ -66,6 +83,17 @@ interface RawDyn {
   h: number;
 }
 
+interface RawBar {
+  barId: string;
+  barKey: string;
+  direction: BarDirection;
+  domIndex: number;
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+}
+
 interface BoxEntry {
   tag: string;
   idx: number;
@@ -77,6 +105,23 @@ interface BoxEntry {
   yPct: string;
   wPct: string;
   hPct: string;
+  hoverTex?: string;
+  pressTex?: string;
+  sound?: string;
+  soundPitch?: number;
+  soundVolume?: number;
+}
+
+interface HitFxEntry {
+  fxKey: string;
+  sampleStateKey: string;
+  sampleDomIndex: number;
+  clip: { x: number; y: number; w: number; h: number };
+  hoverTexRel: string;
+  hoverTexPng: string;
+  pressTexRel: string;
+  pressTexPng: string;
+  samePressAsHover: boolean;
 }
 
 interface AnimSheetEntry {
@@ -104,60 +149,19 @@ interface AnimPlacementEntry {
   stateKeys: string[];
 }
 
-interface DynVariant {
-  maskTag: string;
-  color: [number, number, number];
-}
-
-interface DynRegistryEntry {
-  slot: number;
-  dynId: string;
-  scale: number;
-  align: string;
-  xPct: string;
-  yPct: string;
-  wPct: string;
-  hPct: string;
-  maskXPct: string;
-  maskYPct: string;
-  maskWPct: string;
-  maskHPct: string;
-  variants: Map<string, DynVariant>;
-}
-
-interface RawMotion {
-  motionId: string;
-  motionKey: string;
-  effects: string[];
-  dx: number;
-  dy: number;
-  hasSize: boolean;
-  scaleMin: number;
-  scaleMax: number;
-  hasAlpha: boolean;
-  alphaMin: number;
-  alphaMax: number;
-  duration: number;
-  delay: number;
-  easing: string;
-  layer: number;
-  domIndex: number;
-  x: number;
-  y: number;
-  w: number;
-  h: number;
-}
-
 interface MotionSpriteEntry {
   motionKey: string;
   motionId: string;
   effects: string[];
   dx: number;
   dy: number;
+  offsetOneShot: boolean;
   hasSize: boolean;
+  sizeOneShot: boolean;
   scaleMin: number;
   scaleMax: number;
   hasAlpha: boolean;
+  alphaOneShot: boolean;
   alphaMin: number;
   alphaMax: number;
   duration: number;
@@ -186,13 +190,57 @@ interface MotionPlacementEntry {
   stateKeys: string[];
 }
 
+interface DynVariant {
+  maskTag: string;
+  color: [number, number, number];
+}
+
+interface DynRegistryEntry {
+  slot: number;
+  dynId: string;
+  scale: number;
+  align: string;
+  xPct: string;
+  yPct: string;
+  wPct: string;
+  hPct: string;
+  maskXPct: string;
+  maskYPct: string;
+  maskWPct: string;
+  maskHPct: string;
+  variants: Map<string, DynVariant>;
+}
+
+interface BarRegistryEntry {
+  slot: number;
+  barId: string;
+  barKey: string;
+  barTag: string;
+  direction: BarDirection;
+  xPct: string;
+  yPct: string;
+  wPct: string;
+  hPct: string;
+  sampleStateKey: string;
+  sampleDomIndex: number;
+  clip: { x: number; y: number; w: number; h: number };
+  pixelW: number;
+  pixelH: number;
+  texRel: string;
+  texPng: string;
+  stateKeys: string[];
+}
+
 interface InternalState extends BakedState {
   stateAnims: Array<{ animKey: string; xPct: string; yPct: string; wPct: string; hPct: string }>;
   stateMotions: Array<{ motionKey: string; xPct: string; yPct: string; wPct: string; hPct: string; layer: number }>;
 }
 
+const BAR_TAG_PREFIX = '§b§';
+
 /**
- * Crawls all reachable UI states from `config.site.entry`, bakes HiDPI PNGs and flip_book spritesheets,
+ * Crawls all reachable UI states from `config.site.entry`, bakes HiDPI PNGs, CSS hover/active
+ * visuals, flip_book spritesheets, 60fps native JsonUI motions, and live progress bars,
  * generates Bedrock JsonUI (`ui/<ns>.json`, `chest_screen.json`, `pocket_containers.json`, `server_form.json`),
  * optionally emits the invisible 27-slot container entity, and writes the runtime JSON manifest.
  */
@@ -230,6 +278,8 @@ export async function bakeSite(config: ResolvedBakedUiConfig): Promise<SiteBakeR
   try {
     await cdp.call('Page.enable');
     await cdp.call('Runtime.enable');
+    await cdp.call('DOM.enable');
+    await cdp.call('CSS.enable');
     await cdp.call('Page.addScriptToEvaluateOnNewDocument', { source: 'window.__BAKE_HEADLESS__ = true;' });
     await cdp.call('Emulation.setDeviceMetricsOverride', {
       width: viewW,
@@ -250,14 +300,31 @@ export async function bakeSite(config: ResolvedBakedUiConfig): Promise<SiteBakeR
     const queue: string[] = [initialKey];
     const visited = new Map<string, InternalState>();
     const boxRegistry = new Map<string, BoxEntry>();
+    const hitFxRegistry = new Map<string, HitFxEntry>();
     const animSheets = new Map<string, AnimSheetEntry>();
     const animPlacements = new Map<string, AnimPlacementEntry>();
     const motionSprites = new Map<string, MotionSpriteEntry>();
     const motionPlacements = new Map<string, MotionPlacementEntry>();
     const dynRegistry = new Map<string, DynRegistryEntry>();
+    const barRegistry = new Map<string, BarRegistryEntry>();
+    let nextWidgetSlot = 26;
 
-    const registerBox = (x: number, y: number, w: number, h: number, hx: number, hy: number, hw: number, hh: number): BoxEntry => {
-      const key = `${x}_${y}_${w}_${h}`;
+    const registerBox = (
+      x: number,
+      y: number,
+      w: number,
+      h: number,
+      hx: number,
+      hy: number,
+      hw: number,
+      hh: number,
+      fxKey: string | null,
+      sound: string | null,
+      soundPitch: number | null,
+      soundVolume: number | null,
+    ): BoxEntry => {
+      const sKey = sound ? `${sound}@${soundPitch ?? 1}@${soundVolume ?? 0.6}` : '';
+      const key = `${x}_${y}_${w}_${h}_${fxKey ?? ''}_${sKey}`;
       let entry = boxRegistry.get(key);
       if (!entry) {
         const idx = boxRegistry.size;
@@ -275,11 +342,16 @@ export async function bakeSite(config: ResolvedBakedUiConfig): Promise<SiteBakeR
           yPct: pct(hy, viewH),
           wPct: pct(Math.max(12, hw), viewW),
           hPct: pct(Math.max(12, hh), viewH),
+          ...(sound ? { sound } : {}),
+          ...(soundPitch !== null ? { soundPitch } : {}),
+          ...(soundVolume !== null ? { soundVolume } : {}),
         };
         boxRegistry.set(key, entry);
       }
       return entry;
     };
+
+    const measureMotionsJs = buildMeasureMotionsSnippet(viewW, viewH);
 
     while (queue.length > 0) {
       const stateKey = queue.shift()!;
@@ -299,8 +371,9 @@ export async function bakeSite(config: ResolvedBakedUiConfig): Promise<SiteBakeR
         meta: { url: string; title: string };
         hits: RawHit[];
         anims: RawAnim[];
-        motions: RawMotion[];
+        motions: RawMotionElement[];
         dyns: RawDyn[];
+        bars: RawBar[];
       }>(`
         (async () => {
           window.__BAKE__.setStateKey(${JSON.stringify(stateKey)});
@@ -308,14 +381,27 @@ export async function bakeSite(config: ResolvedBakedUiConfig): Promise<SiteBakeR
           if (window.__BAKE__.whenReady) await window.__BAKE__.whenReady();
           await new Promise(r => setTimeout(r, 16));
           const meta = window.__BAKE__.getMeta ? window.__BAKE__.getMeta() : { url: ${JSON.stringify(stateKey)}, title: document.title || 'Menu' };
-          const hits = [...document.querySelectorAll('[data-hit]')].map(el => {
+          const hits = [...document.querySelectorAll('[data-hit]')].map((el, domIndex) => {
             const r = el.getBoundingClientRect();
+            const hitId = el.getAttribute('data-hit');
+            const fxAttr = el.getAttribute('data-hit-fx');
+            const hitFx = fxAttr !== null && fxAttr !== '0' && fxAttr !== 'false';
+            const rawFxKey = el.getAttribute('data-hit-fx-key') || (${JSON.stringify(stateKey)} + '_' + (hitId || 'hit'));
+            const sound = el.getAttribute('data-sound') || null;
+            const pitchAttr = el.getAttribute('data-sound-pitch');
+            const volAttr = el.getAttribute('data-sound-volume');
             return {
-              hitId: el.getAttribute('data-hit'),
-              label: (el.getAttribute('data-label') || el.innerText || el.getAttribute('aria-label') || el.getAttribute('data-hit') || '').replace(/\\s+/g, ' ').trim().slice(0, 40),
+              hitId,
+              label: (el.getAttribute('data-label') || el.innerText || el.getAttribute('aria-label') || hitId || '').replace(/\\s+/g, ' ').trim().slice(0, 40),
               special: el.getAttribute('data-special') || null,
-              x: Math.round(r.left),
-              y: Math.round(r.top),
+              hitFx,
+              hitFxKey: hitFx ? rawFxKey.replace(/[^a-z0-9_]/gi, '_') : null,
+              sound,
+              soundPitch: pitchAttr !== null && pitchAttr !== '' && !Number.isNaN(Number(pitchAttr)) ? Number(pitchAttr) : null,
+              soundVolume: volAttr !== null && volAttr !== '' && !Number.isNaN(Number(volAttr)) ? Number(volAttr) : null,
+              domIndex,
+              x: Math.max(0, Math.round(r.left)),
+              y: Math.max(0, Math.round(r.top)),
               w: Math.round(r.width),
               h: Math.round(r.height),
             };
@@ -335,69 +421,7 @@ export async function bakeSite(config: ResolvedBakedUiConfig): Promise<SiteBakeR
               h: Math.round(r.height),
             };
           }).filter(a => a.w > 4 && a.h > 4);
-          const motions = [...document.querySelectorAll('[data-motion]')].map((el, domIndex) => {
-            const r = el.getBoundingClientRect();
-            const motionId = el.getAttribute('data-motion') || 'motion';
-            const rawKey = el.getAttribute('data-motion-key') || motionId;
-            const rawType = (el.getAttribute('data-motion-type') || 'float').toLowerCase();
-            const effects = rawType.split(/[+,\\s]+/).map(s => s.trim()).filter(Boolean);
-            const ampRaw = el.getAttribute('data-motion-amp');
-            const amp = ampRaw !== null && ampRaw !== '' && !Number.isNaN(Number(ampRaw)) ? Number(ampRaw) : 8;
-            let dx = 0;
-            let dy = 0;
-            let hasSize = false;
-            let hasAlpha = false;
-            for (const ef of effects) {
-              if (ef === 'float' || ef === 'bob') dy = -amp;
-              else if (ef === 'slide-y' || ef === 'slide_y') dy = amp;
-              else if (ef === 'slide-x' || ef === 'slide_x' || ef === 'sway') dx = amp;
-              else if (ef === 'pulse' || ef === 'breathe' || ef === 'scale') hasSize = true;
-              else if (ef === 'glow' || ef === 'fade' || ef === 'alpha') hasAlpha = true;
-            }
-            const dxAttr = el.getAttribute('data-motion-dx');
-            const dyAttr = el.getAttribute('data-motion-dy');
-            if (dxAttr !== null && dxAttr !== '' && !Number.isNaN(Number(dxAttr))) dx = Number(dxAttr);
-            if (dyAttr !== null && dyAttr !== '' && !Number.isNaN(Number(dyAttr))) dy = Number(dyAttr);
-            const scaleMinAttr = el.getAttribute('data-motion-scale-min');
-            const scaleMaxAttr = el.getAttribute('data-motion-scale-max') ?? el.getAttribute('data-motion-scale');
-            const scaleMin = scaleMinAttr !== null && scaleMinAttr !== '' && !Number.isNaN(Number(scaleMinAttr)) ? Number(scaleMinAttr) : 1.0;
-            const scaleMax = scaleMaxAttr !== null && scaleMaxAttr !== '' && !Number.isNaN(Number(scaleMaxAttr)) ? Number(scaleMaxAttr) : 1.08;
-            const alphaMinAttr = el.getAttribute('data-motion-min');
-            const alphaMaxAttr = el.getAttribute('data-motion-max');
-            const alphaMin = Math.max(0, Math.min(1, alphaMinAttr !== null && alphaMinAttr !== '' && !Number.isNaN(Number(alphaMinAttr)) ? Number(alphaMinAttr) : 0.35));
-            const alphaMax = Math.max(0, Math.min(1, alphaMaxAttr !== null && alphaMaxAttr !== '' && !Number.isNaN(Number(alphaMaxAttr)) ? Number(alphaMaxAttr) : 1.0));
-            const duration = Math.max(0.1, parseFloat(el.getAttribute('data-motion-duration') || '1.2') || 1.2);
-            const delay = Math.max(0, parseFloat(el.getAttribute('data-motion-delay') || '0') || 0);
-            const easing = (el.getAttribute('data-motion-easing') || 'in_out_sine').trim();
-            const pad = Math.max(0, Math.round(parseFloat(el.getAttribute('data-motion-pad') || '0') || 0));
-            const layer = Math.max(4, Math.min(7, parseInt(el.getAttribute('data-motion-layer') || '5', 10) || 5));
-            const x = Math.max(0, Math.round(r.left) - pad);
-            const y = Math.max(0, Math.round(r.top) - pad);
-            const right = Math.min(${viewW}, Math.round(r.right) + pad);
-            const bottom = Math.min(${viewH}, Math.round(r.bottom) + pad);
-            return {
-              motionId,
-              motionKey: rawKey.replace(/[^a-z0-9_]/gi, '_'),
-              effects: effects.length ? effects : ['float'],
-              dx,
-              dy,
-              hasSize,
-              scaleMin,
-              scaleMax,
-              hasAlpha,
-              alphaMin,
-              alphaMax,
-              duration,
-              delay,
-              easing,
-              layer,
-              domIndex,
-              x,
-              y,
-              w: Math.max(0, right - x),
-              h: Math.max(0, bottom - y),
-            };
-          }).filter(m => m.w > 4 && m.h > 4);
+          const motions = ${measureMotionsJs};
           const dyns = [...document.querySelectorAll('[data-dyn]')].map(el => {
             const r = el.getBoundingClientRect();
             let bg = [${site.backdropColor[0]}, ${site.backdropColor[1]}, ${site.backdropColor[2]}];
@@ -421,15 +445,33 @@ export async function bakeSite(config: ResolvedBakedUiConfig): Promise<SiteBakeR
               h: Math.round(r.height),
             };
           }).filter(d => d.dynId && d.w > 4 && d.h > 4);
-          return { meta, hits, anims, motions, dyns };
+          const bars = [...document.querySelectorAll('[data-bar]')].map((el, domIndex) => {
+            const r = el.getBoundingClientRect();
+            const barId = el.getAttribute('data-bar') || 'bar';
+            const rawKey = el.getAttribute('data-bar-key') || barId;
+            const rawDir = (el.getAttribute('data-bar-dir') || 'left').toLowerCase();
+            const direction = ['left', 'right', 'up', 'down'].includes(rawDir) ? rawDir : 'left';
+            return {
+              barId,
+              barKey: rawKey.replace(/[^a-z0-9_]/gi, '_'),
+              direction,
+              domIndex,
+              x: Math.max(0, Math.round(r.left)),
+              y: Math.max(0, Math.round(r.top)),
+              w: Math.round(r.width),
+              h: Math.round(r.height),
+            };
+          }).filter(b => b.barId && b.w > 4 && b.h > 4);
+          return { meta, hits, anims, motions, dyns, bars };
         })()
       `);
 
-      // Hide [data-motion] sprites during static state capture so the background PNG has no frozen ghost copy
-      if (info.motions.length > 0) {
+      // Hide [data-motion] & [data-bar] elements during static background capture so no ghost remains
+      const hasHiddenStatic = info.motions.length > 0 || info.bars.length > 0;
+      if (hasHiddenStatic) {
         await cdp.evalJs(`
           (async () => {
-            for (const el of document.querySelectorAll('[data-motion]')) {
+            for (const el of document.querySelectorAll('[data-motion],[data-bar]')) {
               el.setAttribute('data-bui-prev-vis', el.style.visibility || '');
               el.style.visibility = 'hidden';
             }
@@ -438,10 +480,10 @@ export async function bakeSite(config: ResolvedBakedUiConfig): Promise<SiteBakeR
         `);
       }
       const pngBuf = await cdp.capturePng();
-      if (info.motions.length > 0) {
+      if (hasHiddenStatic) {
         await cdp.evalJs(`
           (() => {
-            for (const el of document.querySelectorAll('[data-motion]')) {
+            for (const el of document.querySelectorAll('[data-motion],[data-bar]')) {
               el.style.visibility = el.getAttribute('data-bui-prev-vis') || '';
               el.removeAttribute('data-bui-prev-vis');
             }
@@ -515,10 +557,13 @@ export async function bakeSite(config: ResolvedBakedUiConfig): Promise<SiteBakeR
             effects: m.effects,
             dx: m.dx,
             dy: m.dy,
+            offsetOneShot: m.offsetOneShot,
             hasSize: m.hasSize,
+            sizeOneShot: m.sizeOneShot,
             scaleMin: m.scaleMin,
             scaleMax: m.scaleMax,
             hasAlpha: m.hasAlpha,
+            alphaOneShot: m.alphaOneShot,
             alphaMin: m.alphaMin,
             alphaMax: m.alphaMax,
             duration: m.duration,
@@ -574,9 +619,9 @@ export async function bakeSite(config: ResolvedBakedUiConfig): Promise<SiteBakeR
         const dKey = `${d.dynId}@${xPct},${yPct},${wPct},${hPct}`;
         let reg = dynRegistry.get(dKey);
         if (!reg) {
-          const slot = 26 - dynRegistry.size;
+          const slot = nextWidgetSlot--;
           if (slot < 2) {
-            throw new Error(`Too many unique [data-dyn] positions (exceeds 25 available chest slots)`);
+            throw new Error(`Too many unique [data-dyn] + [data-bar] positions (exceeds 25 available chest slots)`);
           }
           reg = {
             slot,
@@ -620,13 +665,100 @@ export async function bakeSite(config: ResolvedBakedUiConfig): Promise<SiteBakeR
         });
       }
 
+      const barSlots: BakedBarSlot[] = [];
+      for (const b of info.bars ?? []) {
+        const xPct = pct(b.x, viewW);
+        const yPct = pct(b.y, viewH);
+        const wPct = pct(b.w, viewW);
+        const hPct = pct(b.h, viewH);
+        const bKey = `${b.barKey}@${xPct},${yPct},${wPct},${hPct},${b.direction}`;
+        let reg = barRegistry.get(bKey);
+        if (!reg) {
+          const slot = nextWidgetSlot--;
+          if (slot < 2) {
+            throw new Error(`Too many unique [data-dyn] + [data-bar] positions (exceeds 25 available chest slots)`);
+          }
+          const uniqueTexKey = `${b.barKey}_${barRegistry.size}`;
+          const texRel = `${texRelBase}/bar_${uniqueTexKey}`;
+          reg = {
+            slot,
+            barId: b.barId,
+            barKey: uniqueTexKey,
+            barTag: BAR_TAG_PREFIX,
+            direction: b.direction,
+            xPct,
+            yPct,
+            wPct,
+            hPct,
+            sampleStateKey: stateKey,
+            sampleDomIndex: b.domIndex,
+            clip: { x: b.x, y: b.y, w: b.w, h: b.h },
+            pixelW: b.w * site.texScale,
+            pixelH: b.h * site.texScale,
+            texRel,
+            texPng: `${texRel}.png`,
+            stateKeys: [],
+          };
+          barRegistry.set(bKey, reg);
+        }
+        if (!reg.stateKeys.includes(stateKey)) {
+          reg.stateKeys.push(stateKey);
+        }
+        barSlots.push({
+          slot: reg.slot,
+          barId: reg.barId,
+          barKey: reg.barKey,
+          barTag: reg.barTag,
+          direction: reg.direction,
+        });
+      }
+
       const buttons: BakedButton[] = [];
       for (const h of info.hits) {
         const bx = Math.max(0, Math.min(canvasW - 4, Math.round(h.x / sourceScale)));
         const by = Math.max(0, Math.min(canvasH - 4, Math.round(h.y / sourceScale)));
         const bw = Math.max(6, Math.min(canvasW - bx, Math.round(h.w / sourceScale)));
         const bh = Math.max(6, Math.min(canvasH - by, Math.round(h.h / sourceScale)));
-        const box = registerBox(bx, by, bw, bh, h.x, h.y, h.w, h.h);
+
+        let fxEntry: HitFxEntry | undefined;
+        if (h.hitFx && h.hitFxKey) {
+          fxEntry = hitFxRegistry.get(h.hitFxKey);
+          if (!fxEntry) {
+            const hoverRel = `${texRelBase}/hitfx_${h.hitFxKey}_hover`;
+            const pressRel = `${texRelBase}/hitfx_${h.hitFxKey}_press`;
+            fxEntry = {
+              fxKey: h.hitFxKey,
+              sampleStateKey: stateKey,
+              sampleDomIndex: h.domIndex,
+              clip: { x: h.x, y: h.y, w: Math.max(12, h.w), h: Math.max(12, h.h) },
+              hoverTexRel: hoverRel,
+              hoverTexPng: `${hoverRel}.png`,
+              pressTexRel: pressRel,
+              pressTexPng: `${pressRel}.png`,
+              samePressAsHover: false,
+            };
+            hitFxRegistry.set(h.hitFxKey, fxEntry);
+          }
+        }
+
+        const box = registerBox(
+          bx,
+          by,
+          bw,
+          bh,
+          h.x,
+          h.y,
+          h.w,
+          h.h,
+          fxEntry?.fxKey ?? null,
+          h.sound,
+          h.soundPitch,
+          h.soundVolume,
+        );
+        if (fxEntry) {
+          box.hoverTex = fxEntry.hoverTexRel;
+          box.pressTex = fxEntry.pressTexRel;
+        }
 
         let nextState = stateKey;
         if (!h.special) {
@@ -655,6 +787,10 @@ export async function bakeSite(config: ResolvedBakedUiConfig): Promise<SiteBakeR
           hPct: box.hPct,
           nextState,
           special: h.special,
+          ...(fxEntry ? { hitFxHover: fxEntry.hoverTexPng, hitFxPress: fxEntry.pressTexPng } : {}),
+          ...(h.sound ? { sound: h.sound } : {}),
+          ...(h.soundPitch !== null ? { soundPitch: h.soundPitch } : {}),
+          ...(h.soundVolume !== null ? { soundVolume: h.soundVolume } : {}),
         });
       }
 
@@ -668,12 +804,13 @@ export async function bakeSite(config: ResolvedBakedUiConfig): Promise<SiteBakeR
         title: info.meta.title,
         buttons,
         dynSlots,
+        barSlots,
         stateAnims,
         stateMotions,
       });
     }
 
-    // Bake flip_book animation sprite sheets in pure Node (no Python/Pillow!)
+    // 1. Bake flip_book animation sprite sheets in pure Node (no Python/Pillow!)
     const animSheetsArr = [...animSheets.values()];
     const animPlacementsArr = [...animPlacements.values()];
     for (const sheet of animSheetsArr) {
@@ -722,47 +859,151 @@ export async function bakeSite(config: ResolvedBakedUiConfig): Promise<SiteBakeR
       );
     }
 
-    // Bake transparent RGBA sprites for native 60fps JsonUI [data-motion] animations
+    // 2. Bake CSS :hover / :active button textures via CDP CSS.forcePseudoState
+    const hitFxArr = [...hitFxRegistry.values()];
+    for (const fx of hitFxArr) {
+      await cdp.evalJs(`
+        (async () => {
+          window.__BAKE__.setStateKey(${JSON.stringify(fx.sampleStateKey)});
+          if (window.__BAKE__.setAnimFrame) window.__BAKE__.setAnimFrame(0);
+          if (window.__BAKE__.whenReady) await window.__BAKE__.whenReady();
+          for (const el of document.querySelectorAll('[data-bui-hitfx-iso]')) {
+            el.removeAttribute('data-bui-hitfx-iso');
+            el.classList.remove('bui-hover', 'bui-active');
+          }
+          const list = [...document.querySelectorAll('[data-hit]')];
+          const target = list[${fx.sampleDomIndex}];
+          if (!target) throw new Error('Hitbox FX target not found for ' + ${JSON.stringify(fx.fxKey)});
+          target.setAttribute('data-bui-hitfx-iso', '1');
+          target.classList.add('bui-hover');
+          await new Promise(r => setTimeout(r, 12));
+        })()
+      `);
+      const doc = await cdp.call<{ root: { nodeId: number } }>('DOM.getDocument', { depth: 1 });
+      const q = await cdp.call<{ nodeId: number }>('DOM.querySelector', {
+        nodeId: doc.root.nodeId,
+        selector: '[data-bui-hitfx-iso="1"]',
+      });
+      if (q.nodeId) {
+        await cdp.call('CSS.forcePseudoState', { nodeId: q.nodeId, forcedPseudoClasses: ['hover'] });
+      }
+      await cdp.evalJs('new Promise(r => setTimeout(r, 16))');
+      const hoverBuf = await cdp.capturePng({
+        x: fx.clip.x,
+        y: fx.clip.y,
+        width: fx.clip.w,
+        height: fx.clip.h,
+        scale: 1,
+      });
+
+      await cdp.evalJs(`
+        (async () => {
+          const el = document.querySelector('[data-bui-hitfx-iso="1"]');
+          if (el) el.classList.add('bui-active');
+          await new Promise(r => setTimeout(r, 8));
+        })()
+      `);
+      if (q.nodeId) {
+        await cdp.call('CSS.forcePseudoState', { nodeId: q.nodeId, forcedPseudoClasses: ['hover', 'active'] });
+      }
+      await cdp.evalJs('new Promise(r => setTimeout(r, 16))');
+      const pressBuf = await cdp.capturePng({
+        x: fx.clip.x,
+        y: fx.clip.y,
+        width: fx.clip.w,
+        height: fx.clip.h,
+        scale: 1,
+      });
+
+      if (q.nodeId) {
+        await cdp.call('CSS.forcePseudoState', { nodeId: q.nodeId, forcedPseudoClasses: [] }).catch(() => {});
+      }
+      await cdp.evalJs(`
+        (() => {
+          for (const el of document.querySelectorAll('[data-bui-hitfx-iso]')) {
+            el.removeAttribute('data-bui-hitfx-iso');
+            el.classList.remove('bui-hover', 'bui-active');
+          }
+        })()
+      `);
+
+      const hoverImg = decodePng(hoverBuf);
+      const pressImg = decodePng(pressBuf);
+      fs.writeFileSync(path.join(rpDir, fx.hoverTexPng), optimizePngBuffer(hoverBuf, site.quantize));
+      if (imagesPixelEqual(hoverImg, pressImg)) {
+        fx.samePressAsHover = true;
+        fx.pressTexRel = fx.hoverTexRel;
+        fx.pressTexPng = fx.hoverTexPng;
+      } else {
+        fs.writeFileSync(path.join(rpDir, fx.pressTexPng), optimizePngBuffer(pressBuf, site.quantize));
+      }
+    }
+
+    // Update any box / button pressTex references if press reused hover
+    for (const fx of hitFxArr) {
+      if (!fx.samePressAsHover) continue;
+      for (const b of boxRegistry.values()) {
+        if (b.hoverTex === fx.hoverTexRel) b.pressTex = fx.hoverTexRel;
+      }
+      for (const s of visited.values()) {
+        for (let i = 0; i < s.buttons.length; i++) {
+          const btn = s.buttons[i];
+          if (btn.hitFxHover === fx.hoverTexPng) {
+            (s.buttons as BakedButton[])[i] = { ...btn, hitFxPress: fx.hoverTexPng };
+          }
+        }
+      }
+    }
+
+    // 3. Bake transparent RGBA sprites for [data-motion] and [data-bar]
     const motionSpritesArr = [...motionSprites.values()];
     const motionPlacementsArr = [...motionPlacements.values()];
-    if (motionSpritesArr.length > 0) {
+    const barSlotList = [...barRegistry.values()].sort((a, b) => a.slot - b.slot);
+
+    if (motionSpritesArr.length > 0 || barSlotList.length > 0) {
       await cdp.call('Emulation.setDefaultBackgroundColorOverride', {
         color: { r: 0, g: 0, b: 0, a: 0 },
       });
       try {
-        for (const sprite of motionSpritesArr) {
+        const captureIsolated = async (
+          sampleStateKey: string,
+          selector: string,
+          domIndex: number,
+          clip: { x: number; y: number; w: number; h: number },
+          label: string,
+        ): Promise<{ buf: Buffer; width: number; height: number }> => {
           await cdp.evalJs(`
             (async () => {
-              window.__BAKE__.setStateKey(${JSON.stringify(sprite.sampleStateKey)});
+              window.__BAKE__.setStateKey(${JSON.stringify(sampleStateKey)});
               if (window.__BAKE__.setAnimFrame) window.__BAKE__.setAnimFrame(0);
               if (window.__BAKE__.whenReady) await window.__BAKE__.whenReady();
-              let style = document.getElementById('__bui_motion_iso');
+              let style = document.getElementById('__bui_iso_style');
               if (!style) {
                 style = document.createElement('style');
-                style.id = '__bui_motion_iso';
+                style.id = '__bui_iso_style';
                 style.textContent = [
                   'html, body { background: transparent !important; background-image: none !important; }',
                   'body * { visibility: hidden !important; }',
-                  '[data-bui-motion-iso="1"], [data-bui-motion-iso="1"] * { visibility: visible !important; }',
+                  '[data-bui-iso="1"], [data-bui-iso="1"] * { visibility: visible !important; }',
                 ].join('\\n');
                 document.head.appendChild(style);
               }
-              for (const el of document.querySelectorAll('[data-bui-motion-iso]')) {
-                el.removeAttribute('data-bui-motion-iso');
+              for (const el of document.querySelectorAll('[data-bui-iso]')) {
+                el.removeAttribute('data-bui-iso');
               }
-              const list = [...document.querySelectorAll('[data-motion]')];
-              const target = list[${sprite.sampleDomIndex}];
-              if (!target) throw new Error('Motion target element not found for ' + ${JSON.stringify(sprite.motionKey)});
-              target.setAttribute('data-bui-motion-iso', '1');
+              const list = [...document.querySelectorAll(${JSON.stringify(selector)})];
+              const target = list[${domIndex}];
+              if (!target) throw new Error('Isolated sprite target not found for ' + ${JSON.stringify(label)});
+              target.setAttribute('data-bui-iso', '1');
               await new Promise(r => setTimeout(r, 16));
             })()
           `);
 
           const clipBuf = await cdp.capturePng({
-            x: sprite.clip.x,
-            y: sprite.clip.y,
-            width: sprite.clip.w,
-            height: sprite.clip.h,
+            x: clip.x,
+            y: clip.y,
+            width: clip.w,
+            height: clip.h,
             scale: 1,
           });
           const decoded = decodePng(clipBuf);
@@ -775,21 +1016,44 @@ export async function bakeSite(config: ResolvedBakedUiConfig): Promise<SiteBakeR
           }
           if (!hasOpaquePixel) {
             throw new Error(
-              `Motion sprite '${sprite.motionKey}' captured as 100% transparent. Ensure the [data-motion] element renders visible pixels.`,
+              `Isolated sprite '${label}' captured as 100% transparent. Ensure the element renders visible pixels.`,
             );
           }
-          sprite.pixelW = decoded.width;
-          sprite.pixelH = decoded.height;
-          const finalPng = optimizePngBuffer(clipBuf, site.quantize);
-          fs.writeFileSync(path.join(rpDir, sprite.texPng), finalPng);
+          return { buf: optimizePngBuffer(clipBuf, site.quantize), width: decoded.width, height: decoded.height };
+        };
+
+        for (const sprite of motionSpritesArr) {
+          const cap = await captureIsolated(
+            sprite.sampleStateKey,
+            '[data-motion]',
+            sprite.sampleDomIndex,
+            sprite.clip,
+            `motion:${sprite.motionKey}`,
+          );
+          sprite.pixelW = cap.width;
+          sprite.pixelH = cap.height;
+          fs.writeFileSync(path.join(rpDir, sprite.texPng), cap.buf);
+        }
+
+        for (const bar of barSlotList) {
+          const cap = await captureIsolated(
+            bar.sampleStateKey,
+            '[data-bar]',
+            bar.sampleDomIndex,
+            bar.clip,
+            `bar:${bar.barKey}`,
+          );
+          bar.pixelW = cap.width;
+          bar.pixelH = cap.height;
+          fs.writeFileSync(path.join(rpDir, bar.texPng), cap.buf);
         }
       } finally {
         await cdp.evalJs(`
           (() => {
-            const style = document.getElementById('__bui_motion_iso');
+            const style = document.getElementById('__bui_iso_style');
             if (style) style.remove();
-            for (const el of document.querySelectorAll('[data-bui-motion-iso]')) {
-              el.removeAttribute('data-bui-motion-iso');
+            for (const el of document.querySelectorAll('[data-bui-iso]')) {
+              el.removeAttribute('data-bui-iso');
             }
           })()
         `).catch(() => {});
@@ -814,121 +1078,14 @@ export async function bakeSite(config: ResolvedBakedUiConfig): Promise<SiteBakeR
       };
     }
 
-    // Build native 60fps interpolated JsonUI animations (offset / size / alpha)
     const motionAnims: Record<string, unknown> = {};
     for (const sp of motionSpritesArr) {
-      const k = sp.motionKey;
-      const dur = round2(sp.duration);
-      const delay = round2(sp.delay);
-      const easing = sp.easing;
-
-      if (sp.dx !== 0 || sp.dy !== 0) {
-        const toX: string | number = sp.dx !== 0 ? `${round2((sp.dx / sp.clip.w) * 100)}%` : 0;
-        const toY: string | number = sp.dy !== 0 ? `${round2((sp.dy / sp.clip.h) * 100)}%` : 0;
-        const nameA = `mot_${k}_off_a`;
-        const nameB = `mot_${k}_off_b`;
-        motionAnims[nameA] = {
-          anim_type: 'offset',
-          from: [0, 0],
-          to: [toX, toY],
-          duration: dur,
-          easing,
-          next: `@${ns}.${nameB}`,
-        };
-        motionAnims[nameB] = {
-          anim_type: 'offset',
-          from: [toX, toY],
-          to: [0, 0],
-          duration: dur,
-          easing,
-          next: `@${ns}.${nameA}`,
-        };
-        sp.animNames.push(nameA, nameB);
-        if (delay > 0) {
-          const nameW = `mot_${k}_off_w`;
-          motionAnims[nameW] = {
-            anim_type: 'wait',
-            duration: delay,
-            next: `@${ns}.${nameA}`,
-          };
-          sp.animNames.push(nameW);
-          sp.offsetAnimRef = `@${ns}.${nameW}`;
-        } else {
-          sp.offsetAnimRef = `@${ns}.${nameA}`;
-        }
-      }
-
-      if (sp.hasSize) {
-        const s0 = `${round2(sp.scaleMin * 100)}%`;
-        const s1 = `${round2(sp.scaleMax * 100)}%`;
-        const nameA = `mot_${k}_sz_a`;
-        const nameB = `mot_${k}_sz_b`;
-        motionAnims[nameA] = {
-          anim_type: 'size',
-          from: [s0, s0],
-          to: [s1, s1],
-          duration: dur,
-          easing,
-          next: `@${ns}.${nameB}`,
-        };
-        motionAnims[nameB] = {
-          anim_type: 'size',
-          from: [s1, s1],
-          to: [s0, s0],
-          duration: dur,
-          easing,
-          next: `@${ns}.${nameA}`,
-        };
-        sp.animNames.push(nameA, nameB);
-        if (delay > 0) {
-          const nameW = `mot_${k}_sz_w`;
-          motionAnims[nameW] = {
-            anim_type: 'wait',
-            duration: delay,
-            next: `@${ns}.${nameA}`,
-          };
-          sp.animNames.push(nameW);
-          sp.sizeAnimRef = `@${ns}.${nameW}`;
-        } else {
-          sp.sizeAnimRef = `@${ns}.${nameA}`;
-        }
-      }
-
-      if (sp.hasAlpha) {
-        const aMax = round2(sp.alphaMax);
-        const aMin = round2(sp.alphaMin);
-        const nameA = `mot_${k}_al_a`;
-        const nameB = `mot_${k}_al_b`;
-        motionAnims[nameA] = {
-          anim_type: 'alpha',
-          from: aMax,
-          to: aMin,
-          duration: dur,
-          easing,
-          next: `@${ns}.${nameB}`,
-        };
-        motionAnims[nameB] = {
-          anim_type: 'alpha',
-          from: aMin,
-          to: aMax,
-          duration: dur,
-          easing,
-          next: `@${ns}.${nameA}`,
-        };
-        sp.animNames.push(nameA, nameB);
-        if (delay > 0) {
-          const nameW = `mot_${k}_al_w`;
-          motionAnims[nameW] = {
-            anim_type: 'wait',
-            duration: delay,
-            next: `@${ns}.${nameA}`,
-          };
-          sp.animNames.push(nameW);
-          sp.alphaAnimRef = `@${ns}.${nameW}`;
-        } else {
-          sp.alphaAnimRef = `@${ns}.${nameA}`;
-        }
-      }
+      const compiled = compileMotionAnimations(ns, sp);
+      Object.assign(motionAnims, compiled.defs);
+      sp.offsetAnimRef = compiled.offsetAnimRef;
+      sp.sizeAnimRef = compiled.sizeAnimRef;
+      sp.alphaAnimRef = compiled.alphaAnimRef;
+      sp.animNames = compiled.animNames;
     }
 
     const makeStateAnims = (stateAnims: InternalState['stateAnims']) =>
@@ -951,82 +1108,157 @@ export async function bakeSite(config: ResolvedBakedUiConfig): Promise<SiteBakeR
         };
       });
 
-    const makeStateMotions = (stateMotions: InternalState['stateMotions']) =>
+    const makeStateMotions = (stateMotions: InternalState['stateMotions'], prefix = 'motion') =>
       stateMotions.map((m, mi) => {
         const sp = motionSprites.get(m.motionKey)!;
-        const hasBothOffsetAndSize = Boolean(sp.offsetAnimRef && sp.sizeAnimRef);
-        const spriteHasAnim = Boolean(sp.sizeAnimRef || (!hasBothOffsetAndSize && sp.offsetAnimRef));
-        const spriteControl: Record<string, unknown> = {
-          type: 'image',
-          texture: sp.texRel,
-          keep_ratio: false,
-          anchor_from: 'center',
-          anchor_to: 'center',
-          size: sp.sizeAnimRef ?? ['100%', '100%'],
+        return buildMotionControl({
+          controlName: `${prefix}_${mi}`,
+          texRel: sp.texRel,
+          xPct: m.xPct,
+          yPct: m.yPct,
+          wPct: m.wPct,
+          hPct: m.hPct,
           layer: m.layer,
-        };
-        if (spriteHasAnim) {
-          spriteControl.disable_anim_fast_forward = true;
-        }
-        if (!hasBothOffsetAndSize && sp.offsetAnimRef) {
-          spriteControl.offset = sp.offsetAnimRef;
-        }
-        const innerControls: Array<Record<string, unknown>> = hasBothOffsetAndSize
-          ? [
-              {
-                mover: {
-                  type: 'panel',
-                  anchor_from: 'center',
-                  anchor_to: 'center',
-                  size: ['100%', '100%'],
-                  offset: sp.offsetAnimRef,
-                  clips_children: false,
-                  disable_anim_fast_forward: true,
-                  ...(sp.alphaAnimRef ? { propagate_alpha: true } : {}),
-                  controls: [{ sprite: spriteControl }],
-                },
-              },
-            ]
-          : [{ sprite: spriteControl }];
-
-        const wrapper: Record<string, unknown> = {
-          type: 'panel',
-          anchor_from: 'top_left',
-          anchor_to: 'top_left',
-          offset: [m.xPct, m.yPct],
-          size: [m.wPct, m.hPct],
-          clips_children: false,
-          layer: m.layer,
-          controls: innerControls,
-        };
-        if (sp.alphaAnimRef) {
-          wrapper.alpha = sp.alphaAnimRef;
-          wrapper.propagate_alpha = true;
-          wrapper.disable_anim_fast_forward = true;
-        }
-        return { [`motion_${mi}`]: wrapper };
+          offsetAnimRef: sp.offsetAnimRef,
+          sizeAnimRef: sp.sizeAnimRef,
+          alphaAnimRef: sp.alphaAnimRef,
+        });
       });
 
-    const dynSlotList = [...dynRegistry.values()].sort((a, b) => a.slot - b.slot);
-    const minDynSlot = dynSlotList.length > 0 ? dynSlotList[0].slot : 27;
+    const isOneShotMotion = (m: { motionKey: string }): boolean => {
+      const sp = motionSprites.get(m.motionKey);
+      return Boolean(sp && (sp.offsetOneShot || sp.sizeOneShot || sp.alphaOneShot));
+    };
 
-    const invSlotMap = new Map<
-      string,
-      { slotIdx: number; hitTag: string; xPct: string; yPct: string; wPct: string; hPct: string; isExit: boolean }
-    >();
+    // One-shot entrance motions are instantiated via a collection_panel factory so they
+    // replay fresh from t=0 every time the player switches to that tab/state.
+    const enterTemplates: Record<string, unknown> = {};
+    for (const s of statesArr) {
+      const enterMotions = s.stateMotions.filter(isOneShotMotion);
+      if (enterMotions.length === 0) continue;
+      const idxStr = String(s.index).padStart(2, '0');
+      enterTemplates[`st_enter_${idxStr}`] = {
+        type: 'panel',
+        size: ['100%', '100%'],
+        anchor_from: 'top_left',
+        anchor_to: 'top_left',
+        clips_children: false,
+        controls: makeStateMotions(enterMotions, 'enter'),
+      };
+    }
+
+    const makeBarSteps = (b: BarRegistryEntry) => {
+      const steps: Array<Record<string, unknown>> = [];
+      for (let step = 1; step <= 20; step++) {
+        const frac = step / 20;
+        const invPct = `${round2(100 / frac)}%`;
+        const tag = `${b.barTag}${String(step).padStart(2, '0')}`;
+        let offX = pct(b.clip.x, viewW);
+        let offY = pct(b.clip.y, viewH);
+        let boxW = pct(b.clip.w, viewW);
+        let boxH = pct(b.clip.h, viewH);
+        let fillAnchor = 'top_left';
+        let fillW = '100%';
+        let fillH = '100%';
+
+        if (b.direction === 'left') {
+          boxW = pct(b.clip.w * frac, viewW);
+          fillAnchor = 'top_left';
+          fillW = invPct;
+        } else if (b.direction === 'right') {
+          offX = pct(b.clip.x + b.clip.w * (1 - frac), viewW);
+          boxW = pct(b.clip.w * frac, viewW);
+          fillAnchor = 'top_right';
+          fillW = invPct;
+        } else if (b.direction === 'up') {
+          boxH = pct(b.clip.h * frac, viewH);
+          fillAnchor = 'top_left';
+          fillH = invPct;
+        } else {
+          // down: fills bottom-to-top
+          offY = pct(b.clip.y + b.clip.h * (1 - frac), viewH);
+          boxH = pct(b.clip.h * frac, viewH);
+          fillAnchor = 'bottom_left';
+          fillH = invPct;
+        }
+
+        steps.push({
+          [`bf_${String(step).padStart(2, '0')}`]: {
+            type: 'panel',
+            anchor_from: 'top_left',
+            anchor_to: 'top_left',
+            offset: [offX, offY],
+            size: [boxW, boxH],
+            clips_children: true,
+            layer: 5,
+            bindings: [
+              {
+                binding_name: '#hover_text',
+                binding_type: 'collection',
+                binding_collection_name: 'container_items',
+                binding_condition: 'always',
+              },
+              {
+                binding_type: 'view',
+                source_property_name: `(not ((#hover_text - '${tag}') = #hover_text))`,
+                target_property_name: '#visible',
+              },
+            ],
+            controls: [
+              {
+                fill: {
+                  type: 'image',
+                  texture: b.texRel,
+                  keep_ratio: false,
+                  anchor_from: fillAnchor,
+                  anchor_to: fillAnchor,
+                  size: [fillW, fillH],
+                  layer: 5,
+                },
+              },
+            ],
+          },
+        });
+      }
+      return steps;
+    };
+
+    const dynSlotList = [...dynRegistry.values()].sort((a, b) => a.slot - b.slot);
+    const allWidgetSlots = [...dynSlotList.map((d) => d.slot), ...barSlotList.map((b) => b.slot)];
+    const minWidgetSlot = allWidgetSlots.length > 0 ? Math.min(...allWidgetSlots) : 27;
+
+    interface InvSlotButton {
+      slotIdx: number;
+      hitTag: string;
+      xPct: string;
+      yPct: string;
+      wPct: string;
+      hPct: string;
+      isExit: boolean;
+      hoverTex?: string;
+      pressTex?: string;
+      sound?: string;
+      soundPitch?: number;
+      soundVolume?: number;
+    }
+
+    const invSlotMap = new Map<string, InvSlotButton>();
+    const boxByTag = new Map<string, BoxEntry>();
+    for (const b of boxesArr) boxByTag.set(b.tag, b);
 
     for (const s of statesArr) {
       s.buttons.forEach((b, j) => {
         const slotIdx = 2 + j;
-        if (slotIdx >= minDynSlot) {
+        if (slotIdx >= minWidgetSlot) {
           throw new Error(
-            `State '${s.key}' has ${s.buttons.length} buttons which overlap ${dynSlotList.length} dynamic slots ` +
-              `(slot ${slotIdx} >= ${minDynSlot}; max buttons per page = ${minDynSlot - 2}).`,
+            `State '${s.key}' has ${s.buttons.length} buttons which overlap ${allWidgetSlots.length} dynamic/bar slots ` +
+              `(slot ${slotIdx} >= ${minWidgetSlot}; max buttons per page = ${minWidgetSlot - 2}).`,
           );
         }
         const isExit = b.special === 'close';
         const key = `${slotIdx}_${b.hitTag}_${isExit ? 1 : 0}`;
         if (!invSlotMap.has(key)) {
+          const box = boxByTag.get(b.hitTag);
           invSlotMap.set(key, {
             slotIdx,
             hitTag: b.hitTag,
@@ -1035,12 +1267,17 @@ export async function bakeSite(config: ResolvedBakedUiConfig): Promise<SiteBakeR
             wPct: b.wPct,
             hPct: b.hPct,
             isExit,
+            hoverTex: box?.hoverTex,
+            pressTex: box?.pressTex,
+            sound: box?.sound,
+            soundPitch: box?.soundPitch,
+            soundVolume: box?.soundVolume,
           });
         }
       });
     }
 
-    const slotGroups = new Map<number, Array<{ slotIdx: number; hitTag: string; xPct: string; yPct: string; wPct: string; hPct: string; isExit: boolean }>>();
+    const slotGroups = new Map<number, InvSlotButton[]>();
     for (const h of invSlotMap.values()) {
       const list = slotGroups.get(h.slotIdx) ?? [];
       list.push(h);
@@ -1051,6 +1288,7 @@ export async function bakeSite(config: ResolvedBakedUiConfig): Promise<SiteBakeR
       namespace: ns,
       ...flipBooks,
       ...motionAnims,
+      ...enterTemplates,
 
       empty_cell: { type: 'panel', size: [18, 18] },
 
@@ -1061,16 +1299,21 @@ export async function bakeSite(config: ResolvedBakedUiConfig): Promise<SiteBakeR
         offset: '$hoff',
         size: '$hsize',
         layer: 8,
+        '$hover_tex|default': `${texRelBase}/hit_hover`,
+        '$press_tex|default': `${texRelBase}/hit_press`,
+        '$btn_sound|default': 'random.click',
+        '$btn_volume|default': 0.6,
+        '$btn_pitch|default': 1.0,
         default_control: 'default',
         hover_control: 'hover',
         pressed_control: 'pressed',
-        sound_name: 'random.click',
-        sound_volume: 0.6,
-        sound_pitch: 1.0,
+        sound_name: '$btn_sound',
+        sound_volume: '$btn_volume',
+        sound_pitch: '$btn_pitch',
         controls: [
           { default: { type: 'image', texture: `${texRelBase}/hit_idle`, size: ['100%', '100%'], layer: 8 } },
-          { hover: { type: 'image', texture: `${texRelBase}/hit_hover`, size: ['100%', '100%'], layer: 9 } },
-          { pressed: { type: 'image', texture: `${texRelBase}/hit_press`, size: ['100%', '100%'], layer: 9 } },
+          { hover: { type: 'image', texture: '$hover_tex', keep_ratio: false, size: ['100%', '100%'], layer: 9 } },
+          { pressed: { type: 'image', texture: '$press_tex', keep_ratio: false, size: ['100%', '100%'], layer: 9 } },
         ],
         button_mappings: [
           { from_button_id: 'button.menu_select', to_button_id: 'button.container_auto_place', mapping_type: 'pressed', consume_event: false },
@@ -1122,42 +1365,91 @@ export async function bakeSite(config: ResolvedBakedUiConfig): Promise<SiteBakeR
                     size: ['100%', 0],
                     clips_children: false,
                     collection_index: 1,
-                    controls: statesArr.map((s) => ({
-                      [`stpanel_${String(s.index).padStart(2, '0')}`]: {
-                        type: 'panel',
-                        size: ['100%', aspectPctX],
-                        anchor_from: 'top_left',
-                        anchor_to: 'top_left',
-                        bindings: [
-                          {
-                            binding_name: '#hover_text',
-                            binding_type: 'collection',
-                            binding_collection_name: 'container_items',
-                            binding_condition: 'always',
+                    controls: statesArr.flatMap((s) => {
+                      const idxStr = String(s.index).padStart(2, '0');
+                      const loopMotions = s.stateMotions.filter((m) => !isOneShotMotion(m));
+                      const hasEnter = s.stateMotions.some(isOneShotMotion);
+                      const items: Array<Record<string, unknown>> = [
+                        {
+                          [`stpanel_${idxStr}`]: {
+                            type: 'panel',
+                            size: ['100%', aspectPctX],
+                            anchor_from: 'top_left',
+                            anchor_to: 'top_left',
+                            bindings: [
+                              {
+                                binding_name: '#hover_text',
+                                binding_type: 'collection',
+                                binding_collection_name: 'container_items',
+                                binding_condition: 'always',
+                              },
+                              {
+                                binding_type: 'view',
+                                source_property_name: `(not ((#hover_text - '${s.tag}') = #hover_text))`,
+                                target_property_name: '#visible',
+                              },
+                            ],
+                            controls: [
+                              {
+                                bg: {
+                                  type: 'image',
+                                  texture: s.texture,
+                                  keep_ratio: false,
+                                  size: ['100%', '100%'],
+                                  anchor_from: 'top_left',
+                                  anchor_to: 'top_left',
+                                  layer: 3,
+                                },
+                              },
+                              ...makeStateAnims(s.stateAnims),
+                              ...makeStateMotions(loopMotions),
+                            ],
                           },
-                          {
-                            binding_type: 'view',
-                            source_property_name: `(not ((#hover_text - '${s.tag}') = #hover_text))`,
-                            target_property_name: '#visible',
-                          },
-                        ],
-                        controls: [
-                          {
-                            bg: {
-                              type: 'image',
-                              texture: s.texture,
-                              keep_ratio: false,
-                              size: ['100%', '100%'],
-                              anchor_from: 'top_left',
-                              anchor_to: 'top_left',
-                              layer: 3,
+                        },
+                      ];
+                      if (hasEnter) {
+                        const cid = `enter_${idxStr}`;
+                        items.push({
+                          [`enter_host_${idxStr}`]: {
+                            type: 'collection_panel',
+                            size: ['100%', aspectPctX],
+                            anchor_from: 'top_left',
+                            anchor_to: 'top_left',
+                            clips_children: false,
+                            layer: 5,
+                            property_bag: {
+                              '#if_true': [cid],
+                              '#if_false': [],
                             },
+                            factory: {
+                              name: `enter_factory_${idxStr}`,
+                              control_ids: {
+                                [cid]: `${cid}@${ns}.st_enter_${idxStr}`,
+                              },
+                            },
+                            bindings: [
+                              {
+                                binding_name: '#hover_text',
+                                binding_type: 'collection',
+                                binding_collection_name: 'container_items',
+                                binding_condition: 'always',
+                              },
+                              {
+                                binding_type: 'view',
+                                source_property_name: `(not ((#hover_text - '${s.tag}') = #hover_text))`,
+                                target_property_name: '#result',
+                              },
+                              {
+                                binding_type: 'view',
+                                source_property_name: "('#if_' + #result)",
+                                target_property_name: '#collection_length',
+                              },
+                            ],
                           },
-                          ...makeStateAnims(s.stateAnims),
-                          ...makeStateMotions(s.stateMotions),
-                        ],
-                      },
-                    })),
+                        });
+                      }
+                      return items;
+                    }),
                   },
                 },
                 ...[...slotGroups.entries()]
@@ -1180,6 +1472,11 @@ export async function bakeSite(config: ResolvedBakedUiConfig): Promise<SiteBakeR
                                 $htag: h.hitTag,
                                 $hoff: [h.xPct, h.yPct],
                                 $hsize: [h.wPct, h.hPct],
+                                ...(h.hoverTex ? { $hover_tex: h.hoverTex } : {}),
+                                ...(h.pressTex ? { $press_tex: h.pressTex } : {}),
+                                ...(h.sound ? { $btn_sound: h.sound } : {}),
+                                ...(h.soundPitch !== undefined ? { $btn_pitch: h.soundPitch } : {}),
+                                ...(h.soundVolume !== undefined ? { $btn_volume: h.soundVolume } : {}),
                               },
                             })),
                           },
@@ -1264,6 +1561,25 @@ export async function bakeSite(config: ResolvedBakedUiConfig): Promise<SiteBakeR
                     ],
                   },
                 })),
+                ...barSlotList.map((b) => ({
+                  [`slot_${String(b.slot).padStart(2, '0')}`]: {
+                    type: 'panel',
+                    size: ['100%', 0],
+                    clips_children: false,
+                    collection_index: b.slot,
+                    controls: [
+                      {
+                        bar_frame: {
+                          type: 'panel',
+                          size: ['100%', aspectPctX],
+                          anchor_from: 'top_left',
+                          anchor_to: 'top_left',
+                          controls: makeBarSteps(b),
+                        },
+                      },
+                    ],
+                  },
+                })),
               ],
             },
           },
@@ -1333,15 +1649,23 @@ export async function bakeSite(config: ResolvedBakedUiConfig): Promise<SiteBakeR
         offset: '$hoff',
         size: '$hsize',
         layer: 12,
+        '$hover_tex|default': `${texRelBase}/hit_hover`,
+        '$press_tex|default': `${texRelBase}/hit_press`,
+        '$btn_sound|default': 'random.click',
+        '$btn_volume|default': 0.6,
+        '$btn_pitch|default': 1.0,
         $pressed_button_name: 'button.form_button_click',
         $border_visible: false,
         default_control: 'default',
         hover_control: 'hover',
         pressed_control: 'pressed',
+        sound_name: '$btn_sound',
+        sound_volume: '$btn_volume',
+        sound_pitch: '$btn_pitch',
         controls: [
           { default: { type: 'image', texture: `${texRelBase}/hit_idle`, size: ['100%', '100%'], layer: 12 } },
-          { hover: { type: 'image', texture: `${texRelBase}/hit_hover`, size: ['100%', '100%'], layer: 13 } },
-          { pressed: { type: 'image', texture: `${texRelBase}/hit_press`, size: ['100%', '100%'], layer: 13 } },
+          { hover: { type: 'image', texture: '$hover_tex', keep_ratio: false, size: ['100%', '100%'], layer: 13 } },
+          { pressed: { type: 'image', texture: '$press_tex', keep_ratio: false, size: ['100%', '100%'], layer: 13 } },
         ],
         bindings: [
           { binding_name: '#null', binding_type: 'collection', binding_condition: 'none', binding_collection_name: 'form_buttons' },
@@ -1373,6 +1697,11 @@ export async function bakeSite(config: ResolvedBakedUiConfig): Promise<SiteBakeR
                   $htag: b.tag,
                   $hoff: [b.xPct, b.yPct],
                   $hsize: [b.wPct, b.hPct],
+                  ...(b.hoverTex ? { $hover_tex: b.hoverTex } : {}),
+                  ...(b.pressTex ? { $press_tex: b.pressTex } : {}),
+                  ...(b.sound ? { $btn_sound: b.sound } : {}),
+                  ...(b.soundPitch !== undefined ? { $btn_pitch: b.soundPitch } : {}),
+                  ...(b.soundVolume !== undefined ? { $btn_volume: b.soundVolume } : {}),
                 },
               })),
             },
@@ -1598,6 +1927,26 @@ export async function bakeSite(config: ResolvedBakedUiConfig): Promise<SiteBakeR
       };
     }
 
+    const barsMap: Record<string, BakedBarSpec> = {};
+    for (const b of barSlotList) {
+      barsMap[b.barKey] = {
+        barKey: b.barKey,
+        barId: b.barId,
+        slot: b.slot,
+        barTag: b.barTag,
+        direction: b.direction,
+        texture: b.texRel,
+        texturePng: b.texPng,
+        width: b.pixelW,
+        height: b.pixelH,
+        xPct: b.xPct,
+        yPct: b.yPct,
+        wPct: b.wPct,
+        hPct: b.hPct,
+        states: b.stateKeys,
+      };
+    }
+
     const manifest: BakedSiteManifest = {
       version: 1,
       namespace: ns,
@@ -1609,12 +1958,15 @@ export async function bakeSite(config: ResolvedBakedUiConfig): Promise<SiteBakeR
       texScale: site.texScale,
       initialState: initialKey,
       hitboxCount: boxesArr.length,
+      hitFxCount: hitFxArr.length,
       stateCount: statesArr.length,
       animCount: animSheetsArr.length,
       motionCount: motionSpritesArr.length,
       dynCount: dynSlotList.length,
+      barCount: barSlotList.length,
       animations: animationsMap,
       motions: motionsMap,
+      bars: barsMap,
       states: statesMap,
     };
     fs.writeFileSync(site.manifestOut, JSON.stringify(manifest, null, 2) + '\n');
@@ -1632,6 +1984,15 @@ export async function bakeSite(config: ResolvedBakedUiConfig): Promise<SiteBakeR
     for (const sp of motionSpritesArr) {
       totalBytes += fs.statSync(path.join(rpDir, sp.texPng)).size;
     }
+    for (const b of barSlotList) {
+      totalBytes += fs.statSync(path.join(rpDir, b.texPng)).size;
+    }
+    for (const fx of hitFxArr) {
+      totalBytes += fs.statSync(path.join(rpDir, fx.hoverTexPng)).size;
+      if (!fx.samePressAsHover) {
+        totalBytes += fs.statSync(path.join(rpDir, fx.pressTexPng)).size;
+      }
+    }
 
     return {
       manifestPath: site.manifestOut,
@@ -1639,9 +2000,11 @@ export async function bakeSite(config: ResolvedBakedUiConfig): Promise<SiteBakeR
       stateCount: statesArr.length,
       uniquePngs: hashes.size,
       hitboxCount: boxesArr.length,
+      hitFxCount: hitFxArr.length,
       animCount: animSheetsArr.length,
       motionCount: motionSpritesArr.length,
       dynCount: dynSlotList.length,
+      barCount: barSlotList.length,
       totalBytes,
     };
   } finally {
