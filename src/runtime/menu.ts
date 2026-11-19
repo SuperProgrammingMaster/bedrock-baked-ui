@@ -46,6 +46,11 @@ export interface BakedMenuOptions {
   onButtonClick?: (player: Player, button: BakedButton, state: BakedMenuState) => void;
   /** Called when a `data-special="close"` button is clicked or the menu is explicitly closed. */
   onClose?: (player: Player, state: BakedMenuState) => void;
+  /**
+   * Called (one tick later, outside the restricted before-event) when a player's right-click on someone
+   * else's menu entity — or an orphaned one — was blocked. `ownerName` is undefined for orphaned entities.
+   */
+  onForeignInteract?: (player: Player, ownerName: string | undefined) => void;
   /** Optional error logger (defaults to silent safe handling so tick loops never crash). */
   onError?: (context: string, error: unknown) => void;
 }
@@ -75,6 +80,8 @@ export class BakedMenuManager {
 
   private readonly playerStates = new Map<string, BakedMenuState>();
   private readonly menuEntities = new Map<string, Entity>();
+  /** Reverse index: menu entity id -> owning player name (used to block foreign interactions). */
+  private readonly entityOwners = new Map<string, string>();
   private readonly parkUntilTick = new Map<string, number>();
   private readonly armedUntil = new Map<string, number>();
   private readonly lastHeld = new Map<string, boolean>();
@@ -125,7 +132,15 @@ export class BakedMenuManager {
     }
   }
 
-  /** Installs tick polling, tick-late marker sweep, orphan entity cleanup, and PvP melee pass-through. */
+  /** Returns the name of the player that owns the given menu entity id, if any. */
+  getOwnerName(entityId: string): string | undefined {
+    return this.entityOwners.get(entityId);
+  }
+
+  /**
+   * Installs tick polling, tick-late marker sweep, orphan entity cleanup, foreign-interaction guard,
+   * and PvP melee pass-through.
+   */
   install(): void {
     if (this.installed) return;
     this.installed = true;
@@ -149,6 +164,35 @@ export class BakedMenuManager {
     }, 1);
 
     this.sweepRunId = system.runInterval(() => this.sweepOrphanMenus(), this.orphanSweepTicks);
+
+    // Ownership guard: every menu entity is a real 27-slot container floating in front of its owner, so any
+    // nearby player could right-click it, open the owner's menu, and drive it (clicks are applied to the
+    // owner's state). Cancel the interaction before the container opens unless the clicker owns that entity.
+    // Orphaned menu entities (no owner, e.g. left over from a reload) are blocked for everyone.
+    world.beforeEvents.playerInteractWithEntity.subscribe((ev) => {
+      try {
+        if (ev.target.typeId !== this.entityId) return;
+        const ownerName = this.entityOwners.get(ev.target.id);
+        if (ownerName !== undefined && ownerName === ev.player.name) return;
+        ev.cancel = true;
+        const intruder = ev.player;
+        if (this.opts.onForeignInteract) {
+          system.run(() => {
+            try {
+              if (intruder.isValid) this.opts.onForeignInteract?.(intruder, ownerName);
+            } catch (err) {
+              this.logErr('onForeignInteract', err);
+            }
+          });
+        }
+      } catch (err) {
+        // Fail closed for our own entity type: never let an unverified player open a menu container.
+        try {
+          if (ev.target.typeId === this.entityId) ev.cancel = true;
+        } catch {}
+        this.logErr('interactGuard', err);
+      }
+    });
 
     // Marker sweep rule: playerInventoryItemChange can fire a tick late; always re-read the slot before clearing
     // so an item rewarded by the same button click is never erased.
@@ -330,6 +374,7 @@ export class BakedMenuManager {
     this.sweepRunId = undefined;
     this.installed = false;
     this.playerStates.clear();
+    this.entityOwners.clear();
     this.parkUntilTick.clear();
     this.armedUntil.clear();
     this.lastHeld.clear();
@@ -402,7 +447,12 @@ export class BakedMenuManager {
     this.parkUntilTick.delete(playerName);
     const e = this.menuEntities.get(playerName);
     this.menuEntities.delete(playerName);
-    if (e) this.clearEntitySafely(e);
+    if (e) {
+      for (const [id, owner] of this.entityOwners) {
+        if (owner === playerName) this.entityOwners.delete(id);
+      }
+      this.clearEntitySafely(e);
+    }
   }
 
   private findPvpTargetInView(player: Player): Entity | undefined {
@@ -441,6 +491,7 @@ export class BakedMenuManager {
           e.addEffect('invisibility', 20000000, { showParticles: false });
         } catch {}
         this.menuEntities.set(player.name, e);
+        this.entityOwners.set(e.id, player.name);
         const st = this.getState(player);
         st.openedTick = system.currentTick;
         this.syncContainer(e, st, player);

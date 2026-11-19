@@ -27,6 +27,7 @@ This guide explains how `bedrock-baked-ui` works under the hood, every hard limi
 - On the next tick, `BakedMenuManager`:
   1. Verifies Slot 1 (`§s§XX`) first so state transitions never register as phantom clicks.
   2. Detects the moved button slot, sweeps the marker item (re-reading slots in `playerInventoryItemChange` so rewards granted on the same click are never erased), advances `state.bakedKey`, fires `onButtonClick`, and updates container slots **in place** with zero flicker.
+- **Multiplayer ownership guard:** each menu entity belongs to exactly one player. `world.beforeEvents.playerInteractWithEntity` cancels any right-click on a menu entity by someone other than its owner (and on orphaned menu entities), so a nearby player can never open or drive your menu. Use `onForeignInteract(player, ownerName)` to show feedback when this happens.
 - If a living enemy/mob enters the player's crosshair, `BakedMenuManager` automatically parks the invisible menu entity behind the player (`pvpDodge: true`) and forwards accidental swings via `entityHitEntity`.
 
 ---
