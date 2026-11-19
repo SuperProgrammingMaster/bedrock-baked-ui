@@ -25,11 +25,15 @@ export interface PackAddonResult {
   bundledScript: boolean;
 }
 
+/**
+ * Locates esbuild's Node launcher script (`node_modules/esbuild/bin/esbuild`). It is run with
+ * `process.execPath` directly instead of the `.bin/esbuild.cmd` shim, so no shell is involved and
+ * paths containing spaces (e.g. `C:\ai projects\addon`) are passed through intact on Windows.
+ */
 function findEsbuildBin(rootDir: string): string | undefined {
-  const binName = process.platform === 'win32' ? 'esbuild.cmd' : 'esbuild';
   let cur = path.resolve(rootDir);
   for (let i = 0; i < 6; i++) {
-    const candidate = path.join(cur, 'node_modules', '.bin', binName);
+    const candidate = path.join(cur, 'node_modules', 'esbuild', 'bin', 'esbuild');
     if (fs.existsSync(candidate)) return candidate;
     const parent = path.dirname(cur);
     if (parent === cur) break;
@@ -73,6 +77,7 @@ export async function packAddon(
     if (esbuildBin) {
       fs.mkdirSync(path.dirname(jsOut), { recursive: true });
       const args = [
+        esbuildBin,
         tsEntry,
         '--bundle',
         '--format=esm',
@@ -82,11 +87,15 @@ export async function packAddon(
         '--external:@minecraft/server-ui',
         `--outfile=${jsOut}`,
       ];
-      execFileSync(esbuildBin, args, {
-        cwd: rootDir,
-        stdio: ['ignore', 'pipe', 'pipe'],
-        shell: process.platform === 'win32',
-      });
+      try {
+        execFileSync(process.execPath, args, {
+          cwd: rootDir,
+          stdio: ['ignore', 'pipe', 'pipe'],
+        });
+      } catch (err) {
+        const stderr = String((err as { stderr?: unknown }).stderr ?? '').trim();
+        throw new Error(`esbuild failed to bundle ${tsEntry}${stderr ? `:\n${stderr}` : ''}`);
+      }
       bundledScript = true;
     }
   }

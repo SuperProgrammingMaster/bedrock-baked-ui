@@ -150,10 +150,10 @@ world.beforeEvents.chatSend.subscribe((ev) => {
 
 ### 5. Pack into a `.mcaddon`
 
-Bedrock can't load TypeScript, npm imports, or JSON imports directly, so the script has to be bundled. Install esbuild once, then run `pack`:
+Bedrock can't load TypeScript, npm imports, or JSON imports directly, so the script has to be bundled. Install esbuild and `bedrock-baked-ui` locally once (the runtime import gets bundled into `main.js`, and an `npx`-only install isn't visible to esbuild), then run `pack`:
 
 ```bash
-npm i -D esbuild
+npm i -D esbuild bedrock-baked-ui
 npx bedrock-baked-ui pack
 ```
 
